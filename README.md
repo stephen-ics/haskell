@@ -195,8 +195,12 @@
     instance Functor ((,), a) where
         fmap f (a,b) = (a, f b)
 ```
-- This code defines a typeclass 'Functor' and provides instances of the 'Functor' typeclass for two specific types: lists and pairs (a pair is a tuple that contains exactly 2 elements)
-
+- This code defines a typeclass 'Functor' (a built-in type class in Haskell that represent computations that can be mapped over as Functors are able to utilize the 'fmap' a built-in Haskell function) and provides instances of the 'Functor' typeclass for two specific types: lists and pairs (a pair is a tuple that contains exactly 2 elements)
+- This is the signature for the 'fmap' function
+```haskell
+    fmap :: Functor f => (a -> b) -> f a -> f b
+```
+- This checks if the f class completes the functor class type, it has two arguments a function that takes in type 'a' and evaluates to type 'b' and a type 'a' wrapped in the type 'f', ultimating evaluating to a 'b' type value wrapped in the 'f' type
 ## Operators
 - In Haskell, infix operators are simply functions and quite often are used in place of alphanumerica names when the function involved combine in common ways are subject to algebraic laws
 - Use the keyword infix[associativity] precedence operator to define an infix operator
@@ -224,17 +228,17 @@
 ## Monads
 - A monad is a typeclass with two functions: bind and return
 ```haskell
-class Monad m where
-    bind :: m a -> (a -> m b) -> m b
-    return :: a -> m a
+    class Monad m where
+        bind :: m a -> (a -> m b) -> m b
+        return :: a -> m a
 ```
 - This piece of code defines a monad, but a bind is usually written as an infix operator which can be modified to look like
 ```haskell
-infixl 1 >>=
+    infixl 1 >>=
 
-class Monad m where
-    (>>=) :: m a -> (a -> m b) -> m b 
-    return :: a -> m a 
+    class Monad m where
+        (>>=) :: m a -> (a -> m b) -> m b 
+        return :: a -> m a 
     
 ```
 - This defines the structure, but the monad itself also requires three laws that all monad instances must satisfy
@@ -291,3 +295,55 @@ class Monad m where
 - With 'g >>= \b', 'g' is a monadic action that produces a value 'b'. The lambda '\b ->' captures the value 'b' from the previous action and feeds it to the next function
 - Finally in 'h >>= \c ->' the result of the monadic function 'h' is captured as the argument for lambda function and the result of each captured value is returned in a tuple as (a, b, c)
 - 'do' notation simplifies this binding process, the monadic function 'f' is binded to the value 'a' while the nomadic function 'g' is binded to the value 'b' and so on. Then all values are returned as (a, b, c)
+
+## Applicatives
+- Applicatives are similar to monads in the way that they are both abstractions (the process of simplifiying complex concepts or systems to make the code more readable) that help manage computations that have some sort of context or additional structure
+- However, unlike monads, applicatives do not allow you to bind variables and reuse values in the same way monads do
+- This limitation do not allow applicatives to bind and send variables between computations
+- To be defined as an applicative type class, the function must fulfill the requirement of being a functor type class
+- <*> Is an operator that applies a function inside a functor to a value that's also wrapped inside an applicative functor, this is provided by the Applicative class type
+- <$> Is 'fmap' in infix operator form, it takes a function (a -> b) and applies it to the value of type 'f a', resulting in a new value of 'f b', this is provided by the Functor class type
+- $ on the other hand is a basic function application operator that allows you to apply a function to an argument
+- Parenthesis enclose functions an allow them to be utilized as infix operators like (<*>) or (<$>)
+```haskell
+    class Functor f => Applicative f where --specifies that 'f' must be an instance of the 'Functor' type class
+        pure :: a -> f a
+        (<*>) :: f (a -> b) -> f a -> f b
+    
+    (<$>) :: Functor f => (a -> b) -> f a -> f b
+    (<$>) = fmap
+```
+- In the context of Haskell and functional proramming a "pure value" refers to an immutable value that exists indepently of any computational effects or side effect
+- The 'pure' function takes a value and 'lifts' it into applicative context, in other words it creates an applicative functor that wraps the value it lifts
+- Generally, you can not directly apply an unpure function to a value wrapped in the applicative context when using the <*> operator
+- The (.) operator is the function composition operator, it is a built-in operator that takes in two functions as arguments and returns a new function that represents the composition of the two functions
+```haskell
+    (.) :: (b -> c) -> (a -> b) -> a -> c
+```
+- Here the (b -> c) is the second function you want to apply while (a -> b) is the first function you want to apply. 'a' is the input value you want to pass into the composite function and 'c' is the result type of the composition
+- Applicatives satisfy the following laws
+```haskell
+    pure id <*> v = v --identity
+    pure f <*> pure x = pure (f x) --homomorphism
+    u <*> pure y = pure ($ s) <*> u --interchange
+    u <*> (v <*> w) = pure (.) <*> u <*> v <*> w --composition
+```
+- First off, the identity function is a fundamental concept in mathematics and computer science, it's a function that takes an argument and returns the same value, in Haskell the identity function can be defined as
+```haskell
+    id :: a -> a
+    id x = x
+```
+- The first law of applicatives states that the identity function wrapped in an applicative functor, this function is applied to an 'v' which should be equivalent to 'v' itself. In other words using a value inside of the applicative context does not alter the value wrapped inside of the functor
+- The second law expresses the concept of homomorphism, it states that if you lift a pure function 'f' into the applicative context and apply it to a pure value 'x' it should be the same as lifting the result of applying function 'f' to value 'x' directly using 'pure'. The pure function is a lot like the return function of monads in the way that they 'lift' the value into each of their respective contexts
+- The third law is the interchange law. This law states applying a function to a lifted value is equivalent to applying a lifted function to a value assuming all values and functors (either a function or a value) reside in the same applicative context. 
+- Finally, the initmidating law of composition is just a demonstration of composite functions where the 'u' functor is applied to the value evaluated by the 'v' and 'w' functors. This can be represented with the composite operator by calling (.) and applies each previously evaluated value with the next functor. This also comes to show that the order of composition does not matter, for example the composition of 'v' and 'w' applied to 'u' is equivalent to the composition of the functors 'u' and 'v' applied to 'w', and etc
+- For example
+```haskell
+    example1 :: Maybe Integer
+    example = (+) <$> m1 <*> m2
+        where
+            m1 = Just 3
+            m2 = Nothing
+```
+- Instances of the Applicative typeclass also have the available functions '*>' and '<*', these function sequence applicative actions while discarding the value of one of the arguments. While '*>' discards the left argument '<*' discards the right
+- For example in a monadic parser combinator library (a tool that allows you to define and compose parsers using monads), the *> would discard the value of the first argument but return the value of the second
