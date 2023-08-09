@@ -1,6 +1,6 @@
 # Haskell Basics
 
-# Syntax
+## Syntax
  - :: Is a type annotation used to specify the type of an expression
  - -> Is used to denote function types, the last -> denotes the return type of the function
  - The syntax will look like 
@@ -14,13 +14,13 @@
     (1 : (2 : ( 3: [])))  = [1, 2, 3]
 ```
 
-# Functions
+## Functions
  - Functions are first class citizens in Haskell that can be passed around as an argument and yielded as a return value
 ```haskell
     compose f g = \x -> f (g x), this function identified by "compose" takes in two arguments f and g which returns an unamed function aka a lambda function and returns the composite function f(g(x))
 ```
 
-# Data types
+## Data types
  - "data" is a keyword used to define an algebraic data type (sum types and product types)
  - "|"" Define sum types, an algebraic data type that consists of multiple options of type constructors
  - Product types define multiple fields into the same type, like a struct 
@@ -35,8 +35,7 @@
     data T1 = A Int Int | B Bool Bool
 ```
 
-# Values
-## Definitions:
+## Values
 - Homogeneous: Consisting of 1 data type | Heterogenous -> Consiting of multiple data tyeps
 - Inductively defined "x" type: Constructed by combining simpler cases and a "x" operator -> e.g Inductively defined sum type is defined with a sum operator like :
 
@@ -50,7 +49,7 @@
     myTuple = (1, 2) -> a tuple is defined by paraenthesis and separated with commas
 ```
 
-# Pattern Matching
+## Pattern Matching
 - Pattern matching allows us to discriminate on the constructors of a datatype, mapping separate cases to separate code paths and binding variables for each of the fields of the datatype
 ```haskell
     data Maybe a = Nothing | Just a, this will return different values based on the data type of the argument which can be constructed as Nothing or Just, a sum type 
@@ -98,3 +97,28 @@
 ```
 - This constructs a filter with pred as the function and an empty list
 - If the input list is non-empty and can be deconstructed into an empty head, then apply the rest of 'filter' based on whether x is true or false. if x is true then 'x' is included in the filtered output list. If x is false it is excluded from the filtered output list
+
+## Recursion
+- In Haskell, all iteration over data structures is performed by recursion
+- Entering a function in Haskell does not create a new stack frame, the logic of the function is simply entered with the arguments on the stack and yields result to the register
+- In the case where functions return an invocation of itself in tail position (the position in a function where a recurisve call is the last operation before the function returns a result), the resulting logic is compiled via a jump instruction rather than a call
+```haskell
+    sum :: [Int] -> [Int]
+    sum ys = go ys 0
+        where
+            go (x:xs) i = go xs (i+x)
+            go [] i = i
+```
+- This sum function takes in a list of integers and outputs a list of integers. 'ys' is the name of the integer list while 0 is the initial accumulator.
+- It uses an auxiliary function (a helper function) defined in the where statement. If "go" takes a parameter of an empty list it returns i, if the parameter can be broken down into a head and a tail, it recursively calls upon the sum function to calculuate the final sum. The types for the go function are not explicitly stated
+
+- Functions can be defined to recurse mutually on each other
+```haskell
+    even 0 = True
+    even n = odd (n-1)
+
+    odd 0 = False
+    odd n = even (n-1)
+```
+- Even and odd recursively call each other until 0 is returned, in which the whether it is even or odd will be returned
+
