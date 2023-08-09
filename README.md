@@ -201,21 +201,60 @@
 - Use the keyword infix[associativity] precedence operator to define an infix operator
 - The associativity is the default order in which evaluation occurs when precendence is equal
 ```haskell
-infixl 6 + --defines the + operator to have a precedence of 6 and be left associative
-infixl 6 -
-infixl 7 /
-infixl 7 *
+    infixl 6 + --defines the + operator to have a precedence of 6 and be left associative
+    infixl 6 -
+    infixl 7 /
+    infixl 7 *
 
-infixr 5 ++ --defines the ++ operator to have a precedence of 5 and be right associative
-infixr 9 .
+    infixr 5 ++ --defines the ++ operator to have a precedence of 5 and be right associative
+    infixr 9 .
 ```
 - Operators can be written in section form
 ```haskell
-(x+) = \y -> x+y --this partially applied function takes an argument 'y' and returns the result by adding 'x' and 'y'
-(+y) = \x -> x+y
-(+) = \x y -> x+y
+    (x+) = \y -> x+y --this partially applied function takes an argument 'y' and returns the result by adding 'x' and 'y'
+    (+y) = \x -> x+y
+    (+) = \x y -> x+y
 ```
 - Any binary function (a function that takes in two arguments) can be used in infix form by surrounding the name in backticks
 ```haskell
     (+1) `fmap` [1, 2, 3] --[2, 3, 4], this uses the fmap function in infix form (change of syntax)
+```
+
+## Monads
+- A monad is a typeclass with two functions: bind and return
+```haskell
+class Monad m where
+    bind :: m a -> (a -> m b) -> m b
+    return :: a -> m a
+```
+- This piece of code defines a monad, but a bind is usually written as an infix operator which can be modified to look like
+```haskell
+infixl 1 >>=
+
+class Monad m where
+    (>>=) :: m a -> (a -> m b) -> m b
+    return :: a -> m a
+    
+```
+- This defines the structure, but the monad itself also requires three laws that all monad instances must satisfy
+- Law 1: return a >>= f = f a
+- Law 2: m >>= return = m
+- Law 3: (m >>= f) >>= g = m >>= (\x -> f x >>= g)
+
+- Haskell has a level of syntatic sugar for monads known as do-notation. In this form, binds are written sequentially in block form which extract the variable from the binder
+```haskell
+    do { a <- f ; m } = f >>= \a -> do { m }
+    do { f ; m } = f >> do { m }
+    do { m } = m
+```
+- For example, the following are equivalent
+```haskell
+    do { a <- f; m } f >>= \a -> do { m }
+    do { f ; m } f >> do { m }
+    do { m } = m
+
+    f >>= \a ->
+        g >>= \b ->
+            h >>= \c ->
+                return (a, b, c)
 ```
