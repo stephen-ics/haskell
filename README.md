@@ -195,3 +195,27 @@
         fmap f (a,b) = (a, f b)
 ```
 - This code defines a typeclass 'Functor' and provides instances of the 'Functor' typeclass for two specific types: lists and pairs (a pair is a tuple that contains exactly 2 elements)
+
+## Operators
+- In Haskell, infix operators are simply functions and quite often are used in place of alphanumerica names when the function involved combine in common ways are subject to algebraic laws
+- Use the keyword infix[associativity] precedence operator to define an infix operator
+- The associativity is the default order in which evaluation occurs when precendence is equal
+```haskell
+infixl 6 + --defines the + operator to have a precedence of 6 and be left associative
+infixl 6 -
+infixl 7 /
+infixl 7 *
+
+infixr 5 ++ --defines the ++ operator to have a precedence of 5 and be right associative
+infixr 9 .
+```
+- Operators can be written in section form
+```haskell
+(x+) = \y -> x+y --this partially applied function takes an argument 'y' and returns the result by adding 'x' and 'y'
+(+y) = \x -> x+y
+(+) = \x y -> x+y
+```
+- Any binary function (a function that takes in two arguments) can be used in infix form by surrounding the name in backticks
+```haskell
+    (+1) `fmap` [1, 2, 3] --[2, 3, 4], this uses the fmap function in infix form (change of syntax)
+```
