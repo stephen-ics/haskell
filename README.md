@@ -170,7 +170,28 @@
 ```
 - The three special types (,), (->), [] have special type-level syntatic sugar
 ```haskell
-    (,) Int Int = (Int, Int)
-    (->) Int Int = Int -> Int
-    [] Int = [Int]
+    (,) Int Int = (Int, Int) --tuples
+    (->) Int Int = Int -> Int --functions
+    [] Int = [Int] --lists
 ```
+
+## Typeclasses
+- A typeclass defines a collection of functions which need to conform to the given interface
+- An implementation of an interface is called an 'instance'
+- Typeclasses are effectively syntatic sugar for records of functions and nested records (dictionaries) of functions parametrized over the instance type 
+- These dictionaries are implicitly threaded throughout the program when an overloaded identifier is used
+- When a typeclass is used over a concrete type, the implementation is simply spliced (the call is replaced with the corresponding function) in at the call site
+- When a typeclass is used over a polymorphic type (polymorphic types are types that can represent values of different specific types), an implicit dictionary parameter is added to the function so that the implemetation of the necessary functionality is passed with the polymorphic value
+- Typeclasses are "open" and additional instances can always be added, but the defining feature of a typeclass is that the instance search always converges to a single type (when you have multiple instances of a typeclass for different types, the process of selecting the appropriate instance always converges to a single, unique type), making the process of resolving overloaded identifiers globally unambiguous
+```haskell
+    class Functor f where --f is a type constructor that takes one type argument
+        fmap :: (a -> b) -> f a -> f b --'f a' and 'f b' are containers that hold the value of 'a' and 'b' type
+
+    instance Functor [] where --the where keyword is used to define local bindings, such as fmap
+        fmap f [] = []
+        fmap f (x:xs) f x : fmap f xs --in this case f x holds a list of x type as f is a []
+    
+    instance Functor ((,), a) where
+        fmap f (a,b) = (a, f b)
+```
+- This code defines a typeclass 'Functor' and provides instances of the 'Functor' typeclass for two specific types: lists and pairs (a pair is a tuple that contains exactly 2 elements)
