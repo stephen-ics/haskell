@@ -1,4 +1,5 @@
 # Haskell Basics
+- An annotation of the book 'Write You a Haskell' by Stephen Diehl
 
 ## Syntax
  - :: Is a type annotation used to specify the type of an expression
@@ -148,7 +149,7 @@
 - In the example of take 5 square, Haskell only generates 5 squares due to laziness
 
 - In Haskell, a 'bottom' sometimes called a "diverging term" is used to describe a non-terminating or undefined value, often represented as '⊥', it's value has no normal form and does not produce a valid result. It does not successfully compute and yield any meaningful output
-- Laziness is Haskell allow for bottoms to be "threaded around" without immediately causing an error or divergence. These values can be passed around through expressions until they are forced to be evaluated.
+- Laziness is Haskell allow for bottoms to be "threaded around" without immediately causing an error or divergence. These values can be passed around through expressions until they are forced to be evaluated
 ```haskell
     bot = bot --The expression 'bot' does not diverge since the second argument is not used in the body of const
     const 42 bot
@@ -157,3 +158,19 @@
     undefined :: a
 ```
 - Error and undefined will be two bottom terms frequently referenced when writing the scaffolding (initial structure) for incomplete programs
+
+## Higher-Kinded Types
+- The "type of types" in Haskell (just as types classify values, kinds classify types) is the language of kinds. Kinds are either an arrow (k -> k') or a star (*)
+- (k -> k') indicates that a kind takes one kind and produces another kind while '*' is the simplest kind and represents a type that doesn't take any arguments, it's a 'concrete' type
+- Higher kinded types are types that take other types to produce new types, like a function argument type that takes an argument of a type to return a value of a type
+- The kind of Int is *, while the kind of 'Maybe' is * -> *. Haskell supports higher-kinded types which are types that take other types and construct a new type
+- A type constructor in Haskell always has a kind which terminates in a *
+```haskell
+    data T1 f a = T1 (f a) --T1 :: (* -> *) -> * -> *, the (* -> *) is a higher-kinded type as it takes in a type and returns a type
+```
+- The three special types (,), (->), [] have special type-level syntatic sugar
+```haskell
+    (,) Int Int = (Int, Int)
+    (->) Int Int = Int -> Int
+    [] Int = [Int]
+```
