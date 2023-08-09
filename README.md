@@ -17,8 +17,9 @@
 
 ## Functions
  - Functions are first class citizens in Haskell that can be passed around as an argument and yielded as a return value
+ - \x -> defines an anonymous functions also known as lambda functions that take in a parameter 'x'. The -> here is not a type denoter but rather part of the lambda syntax that points to the anonymous function
 ```haskell
-    compose f g = \x -> f (g x) --this function identified by 'compose' takes in two arguments f and g which returns an unamed function aka a lambda function and returns the composite function f(g(x))
+    compose f g = \x -> f (g x) --this function identified by 'compose' takes in two arguments f and g which returns an unamed function aka a lambda function that takes in one parameter 'x' and returns the composite function f(g(x))
 ```
 
 ## Data types
@@ -232,29 +233,61 @@ class Monad m where
 infixl 1 >>=
 
 class Monad m where
-    (>>=) :: m a -> (a -> m b) -> m b
-    return :: a -> m a
+    (>>=) :: m a -> (a -> m b) -> m b 
+    return :: a -> m a 
     
 ```
 - This defines the structure, but the monad itself also requires three laws that all monad instances must satisfy
+- The bind function or "infix operator" takes a monadic value and a function that takes a monadic value as an argument and returns a monadic value
+- The return function takes a value and turns it into a monadic value so that monadic functions can be applied to that value
+
 - Law 1: return a >>= f = f a
+- This law states that if you wrap a value 'x' using return, turning it into a monadic value and bind it with the function f, the result will be equivalent to directly applying function 'f' to value 'x'
+
 - Law 2: m >>= return = m
+- This law states that if you bind a monadic value 'm' with the 'return' function, it's equivalent to the original monadic value 'm'
+
 - Law 3: (m >>= f) >>= g = m >>= (\x -> f x >>= g)
+- This law ensures that the order in which you chain computations with the bind function does not affect the final result. It can be thought as parenthesis can be freely inserted without changing the meaning of the expression statement
 
 - Haskell has a level of syntatic sugar for monads known as do-notation. In this form, binds are written sequentially in block form which extract the variable from the binder
+- The >> operator is used to sequence monadic computations and discard the result of the first computation, it's often used when you're interested in the side effects of a monadic action but don't need to use the result
+- The => symbol is used in type declarations to indicate constraints or class constraints on type variables. It is used in the context of defining types for functions or data structures to specify additional requirements or capabilities
+- The >> operator has two signatures
+'''haskell
+    (>>) :: Monad m => m a - m b -> m b
+'''
+- This piece of code takes two monadic computations as arguments and returns a new monatic computation as a result
+- The => is a class constraint that states that type 'm' must be an instance of the 'Monad' class
+- Furthermore, Haskell's 'do' notation is specifically designed for working with monads, when you use 'do' notation 'f' is presumed to represent a monadic value or computation 
+- <- Is a symbol used for binding values from monadic computations (monads), it extracts values from monads and use them in the context of other computations and is commonly utilized in 'do' notation to sequence and combine monadic actions
+- The semicolon ';' is used to separate different action or statements within a block, the 'do' notation allows you to sequence and combine monadic actions in a more structured style
+- The ultimate purpose of 'do' notation is to write code that performs a series of these monadic actions (computation or operation encapsulated in a monad)
 ```haskell
-    do { a <- f ; m } = f >>= \a -> do { m }
+    do { a <- f; m } = f >>= \a -> do { m }
     do { f ; m } = f >> do { m }
     do { m } = m
 ```
+- Here you can use 'do' notation on the left side to replace the binding infix operators on the right side
+- The first line of code binds the value of the monadic function f to the identifier 'a', while having a separate monadic computation 'm'
+- The second line the code performs the monadic function 'f', discards the result (as defined by the >>) and evaluates the monadic computation 'm'. The result is also discarded in 'do' notation as the evaluated value is not binded to an identifier
+- The third line you have a single monatic computation, it is equivalent to the monatic computation itself
 - For example, the following are equivalent
 ```haskell
-    do { a <- f; m } f >>= \a -> do { m }
-    do { f ; m } f >> do { m }
-    do { m } = m
+    do
+        a <- f
+        b <- g
+        c <- h
+        return (a, b, c)
 
     f >>= \a ->
         g >>= \b ->
             h >>= \c ->
                 return (a, b, c)
 ```
+- This is a more complex line written 'do' notation to add syntatic sugar to the series of monadic operations below. But to understand 'do' notation it is important to understand what the 'do' notation is attempting to act as syntax sugar for. 
+- This bottom piece of code uses monadic operations to sequence a series of monatic computations with the ultimate goal of binding and returning the tuple (a, b, c)
+- The 'f' is a monadic action that produces a value of type 'a'. The lambda '\a' then takes in 'a' as an argument and feeds it into function, effectively 'storing' the value,
+- With 'g >>= \b', 'g' is a monadic action that produces a value 'b'. The lambda '\b ->' captures the value 'b' from the previous action and feeds it to the next function
+- Finally in 'h >>= \c ->' the result of the monadic function 'h' is captured as the argument for lambda function and the result of each captured value is returned in a tuple as (a, b, c)
+- 'do' notation simplifies this binding process, the monadic function 'f' is binded to the value 'a' while the nomadic function 'g' is binded to the value 'b' and so on. Then all values are returned as (a, b, c)
