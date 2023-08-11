@@ -17,9 +17,9 @@
 
 ## Functions
  - Functions are first class citizens in Haskell that can be passed around as an argument and yielded as a return value
- - \x -> defines an anonymous functions also known as lambda functions that take in a parameter 'x'. The -> here is not a type denoter but rather part of the lambda syntax that points to the anonymous function
+ - \x -> defines an anonymous function also known as "lambda functions" that take in a parameter 'x'. The -> here is not a type denoter but rather part of the lambda syntax that points to the anonymous function
 ```haskell
-    compose f g = \x -> f (g x) --this function identified by 'compose' takes in two arguments f and g which returns an unamed function aka a lambda function that takes in one parameter 'x' and returns the composite function f(g(x))
+    compose f g = \x -> f (g x) --this function identified by 'compose' takes in two arguments f and g which returns an unnamed function aka a lambda function that takes in one parameter 'x' and returns the composite function f(g(x))
 ```
 
 ## Data types
@@ -38,7 +38,7 @@
 ```
 
 ## Values
-- Homogeneous: Consisting of 1 data type | Heterogenous -> Consiting of multiple data tyeps
+- Homogeneous: Consisting of 1 data type | Heterogenous -> Consisting of multiple data types
 - Inductively defined 'x' type: Constructed by combining simpler cases and a 'x' operator -> e.g Inductively defined sum type is defined with a sum operator like :
 
 - A list is a homogenous inductively defined sum type of linked cells parametrized over the type of its values
@@ -48,7 +48,7 @@
 - A tuple is a heterogeneous product type parametrized over the types of its two values. Tuples have a special value-level syntax
 ```haskell
     data myTuple a b = myTuple a b
-    myTuple = (1, 2) -> a --tuple is defined by paraenthesis and separated with commas
+    myTuple = (1, 2) -> a --tuple is defined by parenthesis and separated with commas
 ```
 
 ## Pattern Matching
@@ -103,7 +103,7 @@
 
 ## Recursion
 - In Haskell, all iteration over data structures is performed by recursion
-- Entering a function in Haskell does not create a new stack frame, the logic of the function is simply entered with the arguments on the stack and yields result to the register
+- Entering a function in Haskell does not create a new stack frame, the logic of the function is simply entered with the arguments on the stack and yields the result to the register
 - In the case where functions return an invocation of itself in tail position (the position in a function where a recurisve call is the last operation before the function returns a result), the resulting logic is compiled via a jump instruction rather than a call
 ```haskell
     sum :: [Int] -> [Int]
@@ -113,7 +113,7 @@
             go [] i = i
 ```
 - This sum function takes in a list of integers and outputs a list of integers. 'ys' is the name of the integer list while 0 is the initial accumulator.
-- It uses an auxiliary function (a helper function) defined in the where statement. If 'go' takes a parameter of an empty list it returns i, if the parameter can be broken down into a head and a tail, it recursively calls upon the sum function to calculuate the final sum. The types for the go function are not explicitly stated
+- It uses an auxiliary function (a helper function) defined in the where statement. If 'go' takes a parameter of an empty list it returns i, if the parameter can be broken down into a head and a tail, it recursively calls upon the sum function to calculate the final sum. The types for the go function are not explicitly stated
 
 - Functions can be defined to recurse mutually on each other
 ```haskell
@@ -127,7 +127,7 @@
 
 ## Laziness
 - Haskell is a "lazy language", this means that computations are not performed until they are actually needed
-- A 'thunk' is a function that has yet to be computed, when you bound a value to a variable, you're not performing the evaluation yet, rather you're creating a thunk that represents that computation. This allows the lazy evaluation to avoid unecessary calculations
+- A 'thunk' is a function that has yet to be computed, when you bound a value to a variable, you're not performing the evaluation yet, rather you're creating a thunk that represents that computation. This allows the lazy evaluation to avoid unnecessary calculations
 - A thunk that is currently being evaluated may induce the evaluation of other thunks in the process
 - An expression in "weak head normal form (WHNF)" refers to a partially evaluated expression where the outermost constructor (data type) has been evaluated but the arguments to the constructor might still be thunks
 - The runtime has the task of determining which thunks are to be evaluated by the order in which they are connected to the main function node, this is known as "graph reduction"
@@ -139,7 +139,7 @@
     squares = map (^2) (numsFrom 0) --infinite stream of integer squares
 
     take :: Int -> [a] -> [a] 
-    take n _ | n <= 0 = [] --'<=' is a comparison operator not an arrow, _ is used as a placeholder for a value you do not intent to use, in this case anything that is not an integer list!
+    take n _ | n <= 0 = [] --'<=' is a comparison operator not an arrow, _ is used as a placeholder for a value you do not intend to use, in this case anything that is not an integer list!
     take n [] = []
     take n (x:xs) = x : take (n-1) xs
 
@@ -150,7 +150,7 @@
 - In the example of take 5 square, Haskell only generates 5 squares due to laziness
 
 - In Haskell, a 'bottom' sometimes called a "diverging term" is used to describe a non-terminating or undefined value, often represented as '⊥', it's value has no normal form and does not produce a valid result. It does not successfully compute and yield any meaningful output
-- Laziness is Haskell allow for bottoms to be "threaded around" without immediately causing an error or divergence. These values can be passed around through expressions until they are forced to be evaluated
+- Laziness in Haskell allows for bottoms to be "threaded around" without immediately causing an error or divergence. These values can be passed around through expressions until they are forced to be evaluated
 ```haskell
     bot = bot --The expression 'bot' does not diverge since the second argument is not used in the body of const
     const 42 bot
@@ -182,7 +182,7 @@
 - Typeclasses are effectively syntatic sugar for records of functions and nested records (dictionaries) of functions parametrized over the instance type 
 - These dictionaries are implicitly threaded throughout the program when an overloaded identifier is used
 - When a typeclass is used over a concrete type, the implementation is simply spliced (the call is replaced with the corresponding function) in at the call site
-- When a typeclass is used over a polymorphic type (polymorphic types are types that can represent values of different specific types), an implicit dictionary parameter is added to the function so that the implemetation of the necessary functionality is passed with the polymorphic value
+- When a typeclass is used over a polymorphic type (polymorphic types are types that can represent values of different specific types), an implicit dictionary parameter is added to the function so that the implementation of the necessary functionality is passed with the polymorphic value
 - Typeclasses are "open" and additional instances can always be added, but the defining feature of a typeclass is that the instance search always converges to a single type (when you have multiple instances of a typeclass for different types, the process of selecting the appropriate instance always converges to a single, unique type), making the process of resolving overloaded identifiers globally unambiguous
 ```haskell
     class Functor f where --f is a type constructor that takes one type argument
@@ -200,11 +200,11 @@
 ```haskell
     fmap :: Functor f => (a -> b) -> f a -> f b
 ```
-- This checks if the f class completes the functor class type, it has two arguments a function that takes in type 'a' and evaluates to type 'b' and a type 'a' wrapped in the type 'f', ultimating evaluating to a 'b' type value wrapped in the 'f' type
+- This checks if the f class completes the functor class type, it has two arguments a function that takes in type 'a' and evaluates to type 'b' and a type 'a' wrapped in the type 'f', ultimately evaluating to a 'b' type value wrapped in the 'f' type
 ## Operators
-- In Haskell, infix operators are simply functions and quite often are used in place of alphanumerica names when the function involved combine in common ways are subject to algebraic laws
+- In Haskell, infix operators are simply functions and quite often are used in place of alphanumerical names when the function involved combine in common ways are subject to algebraic laws
 - Use the keyword infix[associativity] precedence operator to define an infix operator
-- The associativity is the default order in which evaluation occurs when precendence is equal
+- The associativity is the default order in which evaluation occurs when precedence is equal
 ```haskell
     infixl 6 + --defines the + operator to have a precedence of 6 and be left associative
     infixl 6 -
@@ -252,7 +252,7 @@
 - This law states that if you bind a monadic value 'm' with the 'return' function, it's equivalent to the original monadic value 'm'
 
 - Law 3: (m >>= f) >>= g = m >>= (\x -> f x >>= g)
-- This law ensures that the order in which you chain computations with the bind function does not affect the final result. It can be thought as parenthesis can be freely inserted without changing the meaning of the expression statement
+- This law ensures that the order in which you chain computations with the bind function does not affect the final result. It can be thought of as parenthesis can be freely inserted without changing the meaning of the expression statement
 
 - Haskell has a level of syntatic sugar for monads known as do-notation. In this form, binds are written sequentially in block form which extract the variable from the binder
 - The >> operator is used to sequence monadic computations and discard the result of the first computation, it's often used when you're interested in the side effects of a monadic action but don't need to use the result
@@ -313,7 +313,7 @@
     (<$>) :: Functor f => (a -> b) -> f a -> f b
     (<$>) = fmap
 ```
-- In the context of Haskell and functional proramming a "pure value" refers to an immutable value that exists indepently of any computational effects or side effect
+- In the context of Haskell and functional proramming a "pure value" refers to an immutable value that exists independently of any computational effects or side effect
 - The 'pure' function takes a value and 'lifts' it into applicative context, in other words it creates an applicative functor that wraps the value it lifts
 - Generally, you can not directly apply an unpure function to a value wrapped in the applicative context when using the <*> operator
 - The (.) operator is the function composition operator, it is a built-in operator that takes in two functions as arguments and returns a new function that represents the composition of the two functions
