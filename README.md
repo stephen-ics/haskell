@@ -347,3 +347,30 @@
 ```
 - Instances of the Applicative typeclass also have the available functions '*>' and '<*', these function sequence applicative actions while discarding the value of one of the arguments. While '*>' discards the left argument '<*' discards the right
 - For example in a monadic parser combinator library (a tool that allows you to define and compose parsers using monads), the *> would discard the value of the first argument but return the value of the second
+
+## Monoids
+- Monoids provide an interface for structures which have an associative operator (mappend, which can be represented as an infix operator as <>) and a neutral element (mempty) for that operation
+- Mappend or <> is a function that represents the binary operation of a monoid, it takes two elements of the monoid and combines them to produce a third element of the same monoid
+- The neutral element, also known as the identity element is a special element within a monoid. When this element is combined with any other element using the monoid's operation, it doesn't change the other element, in other words
+```haskell
+    mappend x e = x
+```
+- 'mempty' is a function that returns the neutral element of a monoid. In Haskell, the 'mempty' function provides a way to access the neutral element of a monoid type, for example a monoid that represents a list concatenation, 'mempty' would be the empty list '[]' which acts as the neutral element for list concatenation
+- A monoid class can be defined as such
+```haskell
+    class Monoid a where
+        mempty :: a
+        mappend :: a -> a -> a
+        mconcat :: [a] ->
+```
+- 'mconcat' for lists takes a list of lists and concatenates them into a single list [[1, 2], [3, 4]] produces [1, 2, 3, 4]
+- The canonical example is the list type with concatenation as the operation and the empty list as zero
+```haskell
+    import Data.Monoid
+
+    a :: [Integer]
+    a = [1, 2, 3] <> [4, 5, 6]
+
+    b :: [Integer]
+    b = ([1, 2, 3] <> mempty) <> (mempty <> [4, 5, 6])
+```
