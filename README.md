@@ -34,14 +34,15 @@
 
 ## Data types
  - 'data' is a keyword used to define an algebraic data type (sum types and product types)
+ - The identifier/name for said data type must begin with a capital letter
  - '|' Define sum types, an algebraic data type that consists of multiple options of type constructors
- - Product types define multiple fields into the same type, like a struct 
+ - Product types define multiple fields into the same type, like a struct and are defined with a space in between two data types
  - Records are a special product type that generate a special set of functions known as selectors which extract values of a specific field from the Records
 ```haskell
     data Sum = A int | B Bool --the sum data type with two type constructors
     data Prod = Prod Int Bool --the prod data type with two types, Int and Bool, Prod is the name of the data type
 ```
-
+- The left side defines the names and arguments of the data type whilst the right side defines its constructors
 - Sums and products can be combined
 ```haskell
     data T1 = A Int Int | B Bool Bool
@@ -66,11 +67,13 @@
 ```haskell
     data Maybe a = Nothing | Just a, this will return different values based on the data type of the argument which can be constructed as Nothing or Just, a sum type 
     
-    maybe :: b -> (a -> b) -> Maybe a -> b --this defines the types of the arguments and return value
-    maybe n f Nothing = n --when n is constructed with the Nothing constructor, it returns the default value 'n'
-    maybe n f (Just a) = f a --when n is constructed with the Just constructor which takes in the argument 'a' and returns a function with 'a' as the argument f(a)
+    maybe :: b -> (a -> b) -> Maybe a -> b --this is the type signature for the built in maybe function
+    maybe n f Nothing = n --when n is constructed with the Nothing constructor
+    maybe n f (Just a) = f a --when n is constructed with the Just constructor
 ```
-- The 'maybe' data type has two constructors, 'Nothing' and 'Just'- Top level (code that is not defined outside any blocks/functions) matches can be written identically as case statements
+- In the piece of code above, the 'maybe' data type has two constructors, 'Nothing' and 'Just', it also takes in two arguments, a function 'f' and a default value 'n'. Pattern matching will match whether the 'Maybe a' was constructed with the 'Nothing' constructor or the 'Just constructor
+- In the case that the Nothing constructor was provided, the default value 'n' will be returned, otherwise the function will unwrap the value 'a' and returns the function 'f' applied to the value 'a' as 'f a'
+- Top level (code that is not defined outside any blocks/functions) matches can be written identically as case statements
 ```haskell
     maybe :: b -> (a -> b) -> Maybe a -> b
     maybe n f x = case x of --x is the parameter that determines the case
@@ -179,6 +182,8 @@
 ```haskell
     data T1 f a = T1 (f a) --T1 :: (* -> *) -> * -> *, the (* -> *) is a higher-kinded type as it takes in a type and returns a type
 ```
+- On the left side, a new type named 'T1' that takes in two type parameters 'f' and 'a' is introduced, on the right side, the constructor of the 'T1' type is defined, a single argument of type 'f a'
+- To clarify, only the left side will have '->' notation as only function type signatures use the '->' syntax, that is how to distinguish if two values wrap each other or if there are multiple arguments
 - The three special types (,), (->), [] have special type-level syntatic sugar
 ```haskell
     (,) Int Int = (Int, Int) --tuples
@@ -237,6 +242,7 @@
 
 ## Monads
 - A monad is a typeclass with two functions: bind and return
+- The primary purpose of monads is to provide a structured way to compose and sequence computations that involve side effects or context, while still maintaining the principles of functional programming and avoiding the use of global variables or mutable state (you will see how!)
 ```haskell
     class Monad m where
         bind :: m a -> (a -> m b) -> m b
@@ -516,3 +522,4 @@
 - 'lift $ tell [2]' appends a value to the writer, however, it is visible that the value needed to be lifted further into the monad transformer in order to access the tell function, part of the WriterT monad transformer. It has to be lifted one more time in order to access the outermost layer to perform an IO action with the 'print' function', 'return ()' then wraps up the computation ith a result
 - Finally evalStack takes a computation in the 'Stack' monad and evaluates it, returning the list of accumulated values written to the 'Writer' layer using evalWriterT and evalStateT to extract the results from each respective layer
 - Using 'mtl' and 'GeneralizedNewTypeDeriving' we can produce the same stack but with a simpler interface to the transformer stack, under the hood 'mtl' is using an extension called 'FunctionalDependencies' to automatically infer which layer of a transformer stack a function belongs to and can then lift the function into it
+
