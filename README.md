@@ -473,3 +473,46 @@
 - Here, 'do' notation is utilized to bind the variable from readLn to the variable 'x', this whole function prints the prompt "Enter a number...", binds the value to the variable 'x' and prints the result of the evaluation x > 3
 - The essence of monadic IO in Haskell is that effects are reified as first class values (the concept of IO which is typically considered a side effect is made concrete and represented as a first class value' in the language and reflected in the typesystem, this is one of the foundational ideas of Haskell, though not specific to Haskell
 
+## Monad Transformers
+- Monads can be combined together to form composite monads
+- Each of the composite monads consists of lyaers of different monad functionality
+- An example of this is combining an error-reporting monad with a state monad to encapsulate a certain set of computations that need both functionalities
+- The use of monad transformers while not always necessary is often one of the primary ways to structure modern Haskell programs
+```haskell
+    class MonadTrans t where
+        lift :: Monad m => m a -> t m a
+```
+- This typeclass has one function it needs to implement, the 'lift' function. The 'lift' function takes a computation 'm a' in the base monad 'm' and lifts it into a monad transformer 't', enabling the value to work with multiple monadic functions
+- The implementation of monad transformers is comprised of two complementary libraries, 'transformers' and 'mtl'. The 'transformers' library provides the monad transformer layers and 'mtl' extends this functionality to allow implicit lifting between several layers
+- To use the transformers, we simply import the 'Trans' variants of each of the layers we want to compose and then wrap them in a newtype
+```haskell
+    import Control.Monad.Trans
+    import Control.Monad.Trans.State
+    import Control.Monad.Trans.Writer
+
+    newtype Stack a = Stack { unStack :: StateT Int (WriterT [Int] IO) a }
+        deriving (Monad)
+    
+    foo :: Stack ()
+    foo = Stack $ do
+        put 1 -- State layer
+        lift $ tell [2] -- Writer layer
+        lift $ lift $ print 3 -- Io Layer
+        return ()
+    
+    evalStack :: Stack a -> IO [Int]
+    evalStack m = execWriterT (evalStateT (unStack m) 0)
+```
+- Woahhh... So this is a long piece of code... Let's break it down :)
+- The code first imports from necessary libraries. 'Code.Monad'Trans' provides the monad transformer types, and 'Control.Monad.Trans.State' and 'Control.Monad.Trans.Writer' are specific monad transformer layers to be 'layered'
+- Next a 'newtype' named 'Stack' is declared, parametrized by a type variable 'a', the 'neytype' keyword is used to define a new type with a single constructor, in this case 'Stack' is a wrapper around a monad transformer stack
+- The single constructor of the 'Stack' newtype is then defined, it uses record syntax to label the constructor field as 'unStack' which hold the actual value of the monad transformer stack
+- 'StateT Int (WriterT [Int] IO) a' is the type of the monad transformer stack being wrapped by the 'Stack' newtype, it is a composition of three monads
+- 'IO' is the outermost monad in the stack, which allows for I/O operations, WriterT is the middle monad, parametrized by [Int] as the type to accumulate, lastly State T is the innermost monad transformer parametrized with an 'Int' as the state type, the 'a' at the end represents the type of value produced by the computation
+- Then the 'deriving (Monad)' line uses the 'deriving' keyword to automatically create an instace of the 'Monad' typeclass for the 'Stack' newtype effectively allowing the use of monadic operations such as 'return', '>>=' directly with values of type 'Stack a'
+- The purpose of the 'unStack' function is to allow you to unwrap and access the underlying computations within the 'Stack' newtype
+- Next the 'foo' function is defined as a 'Stack ()' type, meaning it deals with side effects and has no significant return value, the purpose of this function is to demonstrate the use of the 'Stack' monad
+- put 1 updates the state in the 'State' layer
+- 'lift $ tell [2]' appends a value to the writer, however, it is visible that the value needed to be lifted further into the monad transformer in order to access the tell function, part of the WriterT monad transformer. It has to be lifted one more time in order to access the outermost layer to perform an IO action with the 'print' function', 'return ()' then wraps up the computation ith a result
+- Finally evalStack takes a computation in the 'Stack' monad and evaluates it, returning the list of accumulated values written to the 'Writer' layer using evalWriterT and evalStateT to extract the results from each respective layer
+- Using 'mtl' and 'GeneralizedNewTypeDeriving' we can produce the same stack but with a simpler interface to the transformer stack, under the hood 'mtl' is using an extension called 'FunctionalDependencies' to automatically infer which layer of a transformer stack a function belongs to and can then lift the function into it
