@@ -252,7 +252,7 @@
     
 ```
 - This defines the structure, but the monad itself also requires three laws that all monad instances must satisfy
-- The bind function or "infix operator" takes a monadic value and a function that takes a monadic value as an argument and returns a monadic value
+- The bind function or "infix operator" takes a monadic value and a function that takes a monadic value as an argument and returns a monadic value, this new monatic value is often used as an argument to another function that produces another monadic computation
 - The return function takes a value and turns it into a monadic value so that monadic functions can be applied to that value
 
 - Law 1: return a >>= f = f a
@@ -505,8 +505,8 @@
 ```
 - Woahhh... So this is a long piece of code... Let's break it down :)
 - The code first imports from necessary libraries. 'Code.Monad'Trans' provides the monad transformer types, and 'Control.Monad.Trans.State' and 'Control.Monad.Trans.Writer' are specific monad transformer layers to be 'layered'
-- Next a 'newtype' named 'Stack' is declared, parametrized by a type variable 'a', the 'neytype' keyword is used to define a new type with a single constructor, in this case 'Stack' is a wrapper around a monad transformer stack
-- The single constructor of the 'Stack' newtype is then defined, it uses record syntax to label the constructor field as 'unStack' which hold the actual value of the monad transformer stack
+- Next a 'newtype' named 'Stack' is declared, parametrized by a type variable 'a', the 'newtype' keyword is used to define a new type with a single constructor, in this case 'Stack' is a wrapper around a monad transformer stack
+- The single constructor of the 'Stack' newtype is then defined, it uses record syntax to label the constructor field as 'unStack' which hold the actual value of the monad transformer stack -> a complex looking type definition
 - 'StateT Int (WriterT [Int] IO) a' is the type of the monad transformer stack being wrapped by the 'Stack' newtype, it is a composition of three monads
 - 'IO' is the outermost monad in the stack, which allows for I/O operations, WriterT is the middle monad, parametrized by [Int] as the type to accumulate, lastly State T is the innermost monad transformer parametrized with an 'Int' as the state type, the 'a' at the end represents the type of value produced by the computation
 - Then the 'deriving (Monad)' line uses the 'deriving' keyword to automatically create an instace of the 'Monad' typeclass for the 'Stack' newtype effectively allowing the use of monadic operations such as 'return', '>>=' directly with values of type 'Stack a'
