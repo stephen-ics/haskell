@@ -103,7 +103,8 @@
     first (a, b) = a
 ```
 - A predicate is a function that yields a boolean, they can guard patterns
-- Guards only allow the execution of a branch if the corresponding predicate yields to True
+- The symbol '|' can be used to add guards (not to be confused with the '|' that declares a sum data type). Guards only allow the execution of a branch if the corresponding predicate yields to True
+- One can think of a guard as an conditional statement (if else)
 ```haskell
     filter :: (a -> Bool) -> [a] -> [a], type definition
     filter pred [] = []
@@ -111,7 +112,8 @@
         | pred x = x : filter pred xs, 
         | otherwise = filter pred xs
 ```
-- This constructs a filter with pred as the function and an empty list
+- This constructs a filter with pred as the function and an empty list, the filter function will recurisely call upon the filter function, checking if the 'head' of the list of 'a' type or 'x' fulfills the pred function (pred here is just a placeholder for a predicate function), it the conditions are met, x is pushed back onto the returned list
+- 'otherwise' suggests the case that the predicate condition is not met by the 'x' value, and is used specifically in guard statements
 - If the input list is non-empty and can be deconstructed into an empty head, then apply the rest of 'filter' based on whether x is true or false. if x is true then 'x' is included in the filtered output list. If x is false it is excluded from the filtered output list
 
 ## Recursion
@@ -125,8 +127,11 @@
             go (x:xs) i = go xs (i+x)
             go [] i = i
 ```
-- This sum function takes in a list of integers and outputs a list of integers. 'ys' is the name of the integer list while 0 is the initial accumulator.
-- It uses an auxiliary function (a helper function) defined in the where statement. If 'go' takes a parameter of an empty list it returns i, if the parameter can be broken down into a head and a tail, it recursively calls upon the sum function to calculate the final sum. The types for the go function are not explicitly stated
+- The 'where' keyword defines a block of code local to the enclosing function 
+- This sum function takes in a list of integers and outputs a list of integers. 'ys' as stated in the type signature
+- The sum function takes in 'ys' a list of integers and calls the 'go' function defined in the 'where' block
+- The 'go' function is an auxiliary function (a helper function) that takes in a parameter integer list and an initial accumulator 0, then it uses pattern matching to determine the next course of actions 
+- If 'go' takes a parameter of an empty list it returns i, if the parameter can be broken down into a head and a tail, it recursively calls upon the sum function to calculate the final sum. The types for the go function are not explicitly stated
 
 - Functions can be defined to recurse mutually on each other
 ```haskell
