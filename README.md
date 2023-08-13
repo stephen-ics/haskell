@@ -21,6 +21,16 @@
 ```haskell
     compose f g = \x -> f (g x) --this function identified by 'compose' takes in two arguments f and g which returns an unnamed function aka a lambda function that takes in one parameter 'x' and returns the composite function f(g(x))
 ```
+- <$> Is 'fmap' in infix operator form, it takes a function (a -> b) and applies it to the value of type 'f a', resulting in a new value of 'f b', this is provided by the Functor class type, it's type signature looks as such
+```haskell
+    (<$>) :: (a -> b) -> f a -> f b
+```
+- Here, the f a is unwrapped into the 'a' type, passed into the function as a parameter, a value of 'b' type is evaluated and then rewrapped in the same context 'f'
+- $ on the other hand is a basic function application operator that allows you to apply a function to an argument, it's type signature looks like this!
+```haskell
+    ($) :: (a -> b) -> a -> b
+```
+- This defines an infix operator '$' that takes in a function which takes in argument type 'a', an argument of type 'a', and evaluated to a value of type 'b', the same value the function evaluates to
 
 ## Data types
  - 'data' is a keyword used to define an algebraic data type (sum types and product types)
@@ -301,9 +311,11 @@
 - However, unlike monads, applicatives do not allow you to bind variables and reuse values in the same way monads do
 - This limitation do not allow applicatives to bind and send variables between computations
 - To be defined as an applicative type class, the function must fulfill the requirement of being a functor type class
-- <*> Is an operator that applies a function inside a functor to a value that's also wrapped inside an applicative functor, this is provided by the Applicative class type
-- <$> Is 'fmap' in infix operator form, it takes a function (a -> b) and applies it to the value of type 'f a', resulting in a new value of 'f b', this is provided by the Functor class type
-- $ on the other hand is a basic function application operator that allows you to apply a function to an argument
+- <*> Is an operator that applies a function inside a functor to a value that's also wrapped inside an applicative functor, this is provided by the Applicative class type, it's type signature looks as such
+```haskell
+    (<*>) :: f (a -> b) -> f a -> f b
+```
+- This infix operator acts the exact same as 'fmap' except that the function that takes in (a -> b) is wrapped in the context 'f', adding on an extra discrminator
 - Parenthesis enclose functions an allow them to be utilized as infix operators like (<*>) or (<$>)
 ```haskell
     class Functor f => Applicative f where --specifies that 'f' must be an instance of the 'Functor' type class
@@ -374,3 +386,70 @@
     b :: [Integer]
     b = ([1, 2, 3] <> mempty) <> (mempty <> [4, 5, 6])
 ```
+- The first line applies the 'mappend' function in infix form to two lists, [1, 2, 3] and [4, 5, 6], combining two elements of the monoid and creating a third element
+- The second line applies the 'mappend' function in infix form to the neutral element or 'mempty' which, in this case is an empty list. This returns the value of the list itself, finally the the 'mappend' function is called on the two evaluated values combining monoid elements [1, 2, 3] and [4, 5, 6] to form the singular monoid element [1, 2, 3, 4, 5, 6]
+
+## Deriving
+- Instances for typeclasses like 'Read', 'Show', 'Eq', and 'Ord' can be derived automatically by the Haskell compiler
+```haskell
+    data PlatonicSolid
+    = Tetrahedron
+    | Cube
+    | Octahedron
+    | Dodecahedron
+    | Icosahedron
+    deriving (Show, Eq, Ord, Read)
+
+    example = show Icosahedron
+    example = read "Tetrahedron"
+    example = Cube == Octahedron
+    example = sort [Cube, Dodecahedron]
+
+```
+- Here the instances for the typeclass PlatonicSolid is derived automatically by the compiler as shown in the four examples below
+
+## IO (Input/Output)
+- A value of type IO 'a' is a computation which, when performed, does some I/O before returning a value of type 'a'.
+- The notable feature of Haskell is that IO is still functionally pure, a value of type IO 'a' is simply a value which stands for a computation which, when evoked will perform IO, there is no way to peek into its contents without running it
+- For instance, the following function does not print the numbers 1 to 5, instead it builds a list of IO computations:
+'''haskell
+    fmap print [1..5] :: [IO ()]
+'''
+- We can then manipulate them as an ordinary list of values:
+'''haskell
+    reverse (fmap print [1..5] :: [IO ()])
+'''
+- We can then build a composite computation of each of the IO actions, in the list using 'sequence_', which evaluate actions from left to right
+- The resulting IO computation can be evaluated in main (or the GHCi repl, which effectively is embedded inside of IO)
+'''haskell
+    >> sequence_ (fmap print[1..5]) :: IO ()
+    1
+    2
+    3
+    4
+    5
+'''
+- Applying the reverse function onto the type IO []int will result in the exact same result with the sequence reversed
+'''haskell
+    >> sequence_ (reverse (fmap print [1..5]) :: IO ())
+    5
+    4
+    3
+    2
+    1
+'''
+- The IO monad is wired into the runtime with compile support, it is a special case and most monads in Haskell have nothing to do with effects in this sense
+```haskell
+    putStrLn :: String -> IO ()
+    print :: Show a => a -> IO ()
+```
+- The type of main is always IO ()
+```haskell
+    main :: IO ()
+    main = do
+        putStrLn "Enter a number greater than 3: "
+        x <- readLn
+        print(x > 3)
+```
+- The essence of monadic IO in Haskell is that effects are reified as first class values in the language and reflected in the typesystem, this is one of the foundational ideas of Haskell, though not specific to Haskell
+
