@@ -70,7 +70,7 @@
     maybe n f Nothing = n --when n is constructed with the Nothing constructor, it returns the default value 'n'
     maybe n f (Just a) = f a --when n is constructed with the Just constructor which takes in the argument 'a' and returns a function with 'a' as the argument f(a)
 ```
-- Top level (code that is not defined outside any blocks/functions) matches can be written identically as case statements
+- The 'maybe' data type has two constructors, 'Nothing' and 'Just'- Top level (code that is not defined outside any blocks/functions) matches can be written identically as case statements
 ```haskell
     maybe :: b -> (a -> b) -> Maybe a -> b
     maybe n f x = case x of --x is the parameter that determines the case
@@ -265,11 +265,11 @@
 - This law ensures that the order in which you chain computations with the bind function does not affect the final result. It can be thought of as parenthesis can be freely inserted without changing the meaning of the expression statement
 
 - Haskell has a level of syntatic sugar for monads known as do-notation. In this form, binds are written sequentially in block form which extract the variable from the binder
-- The >> operator is used to sequence monadic computations and discard the result of the first computation, it's often used when you're interested in the side effects of a monadic action but don't need to use the result
+- The >> operator is used to sequence monadic computations and discard the result of the first computation, it's often used when you're interested in the side effects of a monadic action but don't need to use the result, for example in IO which will be talked about later
 - The => symbol is used in type declarations to indicate constraints or class constraints on type variables. It is used in the context of defining types for functions or data structures to specify additional requirements or capabilities
 - The >> operator has two signatures
 '''haskell
-    (>>) :: Monad m => m a - m b -> m b
+    (>>) :: Monad m => m a -> m b -> m b
 '''
 - This piece of code takes two monadic computations as arguments and returns a new monatic computation as a result
 - The => is a class constraint that states that type 'm' must be an instance of the 'Monad' class
@@ -315,6 +315,14 @@
 ```haskell
     (<*>) :: f (a -> b) -> f a -> f b
 ```
+- The important thing to acknowledge about the applicative functor is that it has two discriminators, rather than one like 'fmap'
+```haskell
+    Just (+1) <*> Just 1
+    Just (+1) <*> Nothing
+    Nothing <*> Just 1
+    Nothing <*> Nothing
+```
+- This is an example using 'maybe' which has two valid constructors (Just or Nothing), and we have two discriminators, we have four possible cases
 - This infix operator acts the exact same as 'fmap' except that the function that takes in (a -> b) is wrapped in the context 'f', adding on an extra discrminator
 - Parenthesis enclose functions an allow them to be utilized as infix operators like (<*>) or (<$>)
 ```haskell
@@ -326,7 +334,7 @@
     (<$>) = fmap
 ```
 - In the context of Haskell and functional proramming a "pure value" refers to an immutable value that exists independently of any computational effects or side effect
-- The 'pure' function takes a value and 'lifts' it into applicative context, in other words it creates an applicative functor that wraps the value it lifts
+- The 'pure' function takes a value and 'lifts' it into applicative context, in other words it creates an applicative functor that wraps the value it lifts, turning it from value 'a' to value 'f a'
 - Generally, you can not directly apply an unpure function to a value wrapped in the applicative context when using the <*> operator
 - The (.) operator is the function composition operator, it is a built-in operator that takes in two functions as arguments and returns a new function that represents the composition of the two functions
 ```haskell
@@ -406,20 +414,27 @@
     example = sort [Cube, Dodecahedron]
 
 ```
-- Here the instances for the typeclass PlatonicSolid is derived automatically by the compiler as shown in the four examples below
+- Essentially, by using the keyword 'deriving', you are instructing the Haskell compiler to automatically generate implementations of the 'Read', 'Show', 'Eq', and 'Ord' typeclasses for this data type, allowing values of this data type to use functions associated with these typeclasses, for example the 'show' function that will implement itself differently based on the argument provided
 
 ## IO (Input/Output)
+- In Haskell, the IO type represents computations that involve input and output operations
 - A value of type IO 'a' is a computation which, when performed, does some I/O before returning a value of type 'a'.
 - The notable feature of Haskell is that IO is still functionally pure, a value of type IO 'a' is simply a value which stands for a computation which, when evoked will perform IO, there is no way to peek into its contents without running it
 - For instance, the following function does not print the numbers 1 to 5, instead it builds a list of IO computations:
 '''haskell
     fmap print [1..5] :: [IO ()]
 '''
+- Here, 'fmap' applies the 'print' function to each element in the list, creating a list of IO computations that each print a number and return a unit value '()', which represents no useful results
 - We can then manipulate them as an ordinary list of values:
 '''haskell
     reverse (fmap print [1..5] :: [IO ()])
 '''
-- We can then build a composite computation of each of the IO actions, in the list using 'sequence_', which evaluate actions from left to right
+- In this line, the IO computations are reversed, it is important to note that the list does not actually perform I/O operations, it only rearranges the order of computations in the list
+- To actually execute the 'IO' actions and perform the I/O operations, the sequence_ function is used, which takes a list of 'IO' actions and evaluates them from left to right, discarding the results, the result is discarded as only the side effect is off interest (>>) will be useful here. The type signature of a sequence_ function looks as such:
+```haskell
+    sequence_ :: (Monad m) => [m a] -> m ()
+```
+- sequence_ takes a list of monadic actions '[m a]' and returns a monadic action 'm ()', a computation with monadic context that does not produce any meaningful value where 'm' is any monad (including the IO monad)
 - The resulting IO computation can be evaluated in main (or the GHCi repl, which effectively is embedded inside of IO)
 '''haskell
     >> sequence_ (fmap print[1..5]) :: IO ()
@@ -429,6 +444,7 @@
     4
     5
 '''
+- The resulting computation combines the list of 'IO' actions into a singular 'IO' action that represents the sequence of the input 'IO' actions
 - Applying the reverse function onto the type IO []int will result in the exact same result with the sequence reversed
 '''haskell
     >> sequence_ (reverse (fmap print [1..5]) :: IO ())
@@ -443,6 +459,8 @@
     putStrLn :: String -> IO ()
     print :: Show a => a -> IO ()
 ```
+- Here, the function 'putStrLn' takes in a string and returns values of type IO (), which represent actions that perform side effects and has no significant return value
+- 'print' is similar to 'putStrLn' except that it only takes in a value of type 'a' if it implements the 'Show' typeclass rather than just any string
 - The type of main is always IO ()
 ```haskell
     main :: IO ()
@@ -451,5 +469,7 @@
         x <- readLn
         print(x > 3)
 ```
-- The essence of monadic IO in Haskell is that effects are reified as first class values in the language and reflected in the typesystem, this is one of the foundational ideas of Haskell, though not specific to Haskell
+- In Haskell, a program typically has a main function of type 'IO ()', this function servers as the entry point to your program and is where you sequence and compose various 'IO' actions to achieve the desired effect
+- Here, 'do' notation is utilized to bind the variable from readLn to the variable 'x', this whole function prints the prompt "Enter a number...", binds the value to the variable 'x' and prints the result of the evaluation x > 3
+- The essence of monadic IO in Haskell is that effects are reified as first class values (the concept of IO which is typically considered a side effect is made concrete and represented as a first class value' in the language and reflected in the typesystem, this is one of the foundational ideas of Haskell, though not specific to Haskell
 
