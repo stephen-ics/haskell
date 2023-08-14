@@ -498,17 +498,17 @@
 
 ## Monad Transformers
 - Monads can be combined together to form composite monads
-- Each of the composite monads consists of lyaers of different monad functionality
+- Each of the composite monads consists of layers of different monad functionality
 - An example of this is combining an error-reporting monad with a state monad to encapsulate a certain set of computations that need both functionalities
 - The use of monad transformers while not always necessary is often one of the primary ways to structure modern Haskell programs
 ```haskell
     class MonadTrans t where
         lift :: Monad m => m a -> t m a
 ```
-- This typeclass has one function it needs to implement, the 'lift' function. The 'lift' function takes a computation 'm a' in the base monad 'm' and lifts it into a monad transformer 't', enabling the value to work with multiple monadic functions
+- This typeclass has one function it needs to implement, the 'lift' function. The 'lift' function takes a computation 'm a' in the base monad 'm' and lifts it into a monad transformer 't', effectively enabling the value to deal with computations involving multiple monad layers
 - The implementation of monad transformers is comprised of two complementary libraries, 'transformers' and 'mtl'. The 'transformers' library provides the monad transformer layers and 'mtl' extends this functionality to allow implicit lifting between several layers
 - To use the transformers, we simply import the 'Trans' variants of each of the layers we want to compose and then wrap them in a newtype
-- 'newtype' is a keyword that is used to define a new type with a single constructor and a single field, the new type and the type of the field are in direct correspondance (isomorphic)
+- 'newtype' is a keyword that is used to define a new type with a single constructor and a single field (a field is a piece of data associated with the constructor), the new type and the type of the field are in direct correspondance (isomorphic)
 - types defined with 'newtype' are checked at compile time yet ignored during runtime (at runtime it is treated as a string), also no additional matching is needed during pattern matching as there can only be one constructor
 ```haskell
     import Control.Monad.Trans
@@ -528,17 +528,105 @@
     evalStack :: Stack a -> IO [Int]
     evalStack m = execWriterT (evalStateT (unStack m) 0)
 ```
-- Woahhh... So this is a long piece of code... Let's break it down :)
 - The code first imports from necessary libraries. 'Code.Monad'Trans' provides the monad transformer types, and 'Control.Monad.Trans.State' and 'Control.Monad.Trans.Writer' are specific monad transformer layers to be 'layered'
 - Next a 'newtype' named 'Stack' is declared, parametrized by a type variable 'a', in this case 'Stack' is a wrapper around a monad transformer stack
-- The single constructor of the 'Stack' newtype is then defined, it uses record syntax to label the constructor field as 'unStack' which hold the actual value of the monad transformer stack -> a complex looking type definition
+- The single constructor of the 'Stack' newtype is then defined, it uses record syntax to label the constructor field as 'unStack' which hold the actual value of the monad transformer stack 
 - 'StateT Int (WriterT [Int] IO) a' is the type of the monad transformer stack being wrapped by the 'Stack' newtype, it is a composition of three monads
 - 'IO' is the outermost monad in the stack, which allows for I/O operations, WriterT is the middle monad, parametrized by [Int] as the type to accumulate, lastly State T is the innermost monad transformer parametrized with an 'Int' as the state type, the 'a' at the end represents the type of value produced by the computation
 - Then the 'deriving (Monad)' line uses the 'deriving' keyword to automatically create an instace of the 'Monad' typeclass for the 'Stack' newtype effectively allowing the use of monadic operations such as 'return', '>>=' directly with values of type 'Stack a'
 - The purpose of the 'unStack' function is to allow you to unwrap and access the underlying computations within the 'Stack' newtype
 - Next the 'foo' function is defined as a 'Stack ()' type, meaning it deals with side effects and has no significant return value, the purpose of this function is to demonstrate the use of the 'Stack' monad
 - put 1 updates the state in the 'State' layer
-- 'lift $ tell [2]' appends a value to the writer, however, it is visible that the value needed to be lifted further into the monad transformer in order to access the tell function, part of the WriterT monad transformer. It has to be lifted one more time in order to access the outermost layer to perform an IO action with the 'print' function', 'return ()' then wraps up the computation ith a result
+- 'lift $ tell [2]' appends a value to the writer, however, it is visible that the value needed to be lifted further into the monad transformer in order to access the tell function, part of the WriterT monad transformer. It has to be lifted one more time in order to access the outermost layer to perform an IO action with the 'print' function', 'return ()' then wraps up the computation with a result
 - Finally evalStack takes a computation in the 'Stack' monad and evaluates it, returning the list of accumulated values written to the 'Writer' layer using evalWriterT and evalStateT to extract the results from each respective layer
 - Using 'mtl' and 'GeneralizedNewTypeDeriving' we can produce the same stack but with a simpler interface to the transformer stack, under the hood 'mtl' is using an extension called 'FunctionalDependencies' to automatically infer which layer of a transformer stack a function belongs to and can then lift the function into it
 
+```haskell
+    import Control.Monad.Trans
+    import Control.Monad.State
+    import Control.Monad.Writer
+
+    newtype Stack a = Stack { unStack :: StateT Int (WriterT [Int] IO) a }
+        deriving (Monad, MonadState Int, MonadWriter [Int], MonadIO)
+
+    foo :: Stack ()
+    foo = do
+        put 1
+        tell [2]
+        liftIo $ print3
+        return ()
+    
+    evalStack :: Stack a -> IO [Int]
+    evalStack m = execWriterT (evalStateT (unStack m) 0)
+```
+### StateT
+- The state monad allows functions within a stateful monadic context to access and modify shared state, a 'state' is a piece of data that can be accessed and modified by various computations in a controlled manner
+- Below is a list of functions and their type signatures that come with the StateT monad transformer
+```haskell
+    put :: s -> State s () -- set the state value
+    get :: State s s --get the state value
+    gets :: (s -> a) -> State s a --apply a function over the state and return the result
+    modify :: (s -> a) -> State s () --set the state using a modifier function
+```
+- In 'State s s', the first 's' refers to the type of the state being accessed while the second 's' refers to the value being retrieved from the state monad 
+- It is also important to note that States store one value at a time
+- Evaluation functions often follow the naming convention of using the prefixes run, eval, and exec:
+```haskell
+    execState :: State s a -> s -> s --yield the state
+    evalState :: State s a -> s -> a --yield the return value
+    runState :: State s a -> s -> (a, s) --yeld the state and return value
+```
+- An example of this can be seen in the following piece of code
+```haskell
+    import Control.Monad.State
+
+    test :: State Int Int
+    test = do
+        put 3
+        modify (+1)
+        get
+    
+    main :: IO ()
+    main = print $ execState test 0
+```
+- This function sets the state to 3, modifies it with the add 1 function and gets the state value, then the main (defined as an IO action) prints the result of execState to execute the 'test' computation with an initial state of '0'
+
+### ReaderT
+- The Reader monad allows a fixed value to be passed around inside the monadic context
+```haskell
+    ask :: Reader r r --get the value
+    asks :: (r -> a) -> Reader r a --apply the function to the value and return the result
+    local :: (r -> r) -> Reader r a -> Reader r a --run a monadic action with the value modified
+```
+- An example of this can be seen in the following piece of code
+```haskell
+    import Control.Monad.Reader
+
+    data MyContext = MyContext
+        {
+            foo :: String
+            bar :: int
+            deriving (Show)
+        }
+
+    computation :: Reader MyContext (Maybe String)
+    computation = do
+        n <- asks bar
+        x <- asks foo
+        if n > 0
+            then return (Just x)
+            else return Nothing
+    
+    ex1 :: Maybe String
+    ex1 = runReader computation $ MyContext "hello" 1
+    
+    ex2 :: Maybe String
+    ex2 = runReader computation $ MyContext "haskell" 0
+```
+- MyContext is a data type with a single constructor 'MyContext' that takes two fields 'foo' of type string and 'bar' of type int
+- MyContext is also an environment with two fields
+- '{}' in a data type definition indicates that record syntax is being used and the field names listed within curly braces are automatically field accessor functions
+- A field accessor function is a function that allows you to retrieve a value of a specific field, 'bar' and 'foo' are field accessor functions
+- So when 'computation' is defined using the 'Reader' monad, the 'bar' accessor function is applied to the environment 'MyContext' and retrieves the 'Int' value stored in the 'bar' field, assigning it to the variable 'n', the same happens for the accessor function 'foo' and variable 'x'
+- It then checks whether 'n' is greater than 0, if it is it returns Just x otherwise it returns 'Nothing'
+- runReader will run the following computation where the context, string and integer are applied to the function 'computation' and set ex1 and ex2 as each respective result
