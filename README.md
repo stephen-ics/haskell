@@ -47,6 +47,12 @@
 ```haskell
     data T1 = A Int Int | B Bool Bool
 ```
+- The 'type' keyword can be used to define an alias of a type, which means the alias type and the original type will be considered the same within type checking
+```haskell
+    data Colour = RGB (Int, Int, Int)
+    type Palette = [Colour]
+```
+- Here the 'type' Colour constructed with the RGB constructor that takes in three integers as arguments is defined, the line below uses the 'type' keyword to define a type alias Palette which is constructed by a list of colours. This means a function that needs a palette but gets a list of colours is completely valid within Haskell's typechecking
 
 ## Values
 - Homogeneous: Consisting of 1 data type | Heterogenous -> Consisting of multiple data types
@@ -197,13 +203,14 @@
 ```
 
 ## Typeclasses
-- A typeclass defines a collection of functions which need to conform to the given interface
+- A typeclass defines a collection of functions which need to conform to the given interface, certain functions are considered 'minimal functions' that need to be defined, whilst the rest of the functions will be derived by Haskell 
 - An implementation of an interface is called an 'instance'
 - Typeclasses are effectively syntatic sugar for records of functions and nested records (dictionaries) of functions parametrized over the instance type 
 - These dictionaries are implicitly threaded throughout the program when an overloaded identifier is used
 - When a typeclass is used over a concrete type, the implementation is simply spliced (the call is replaced with the corresponding function) in at the call site
 - When a typeclass is used over a polymorphic type (polymorphic types are types that can represent values of different specific types), an implicit dictionary parameter is added to the function so that the implementation of the necessary functionality is passed with the polymorphic value
 - Typeclasses are "open" and additional instances can always be added, but the defining feature of a typeclass is that the instance search always converges to a single type (when you have multiple instances of a typeclass for different types, the process of selecting the appropriate instance always converges to a single, unique type), making the process of resolving overloaded identifiers globally unambiguous
+- Typeclasses are defined with the 'class' keyword
 ```haskell
     class Functor f where --f is a type constructor that takes one type argument
         fmap :: (a -> b) -> f a -> f b --'f a' and 'f b' are containers that hold the value of 'a' and 'b' type
@@ -248,6 +255,8 @@
 ## Monads
 - A monad is a typeclass with two functions: bind and return
 - The primary purpose of monads is to provide a structured way to compose and sequence computations that involve side effects or context, while still maintaining the principles of functional programming and avoiding the use of global variables or mutable state (you will see how!)
+- It is important to note that monads are evaluated from left to right
+
 ```haskell
     class Monad m where
         bind :: m a -> (a -> m b) -> m b
@@ -276,8 +285,8 @@
 - This law ensures that the order in which you chain computations with the bind function does not affect the final result. It can be thought of as parenthesis can be freely inserted without changing the meaning of the expression statement
 
 - Haskell has a level of syntatic sugar for monads known as do-notation. In this form, binds are written sequentially in block form which extract the variable from the binder
-- The >> operator is used to sequence monadic computations and discard the result of the first computation, it's often used when you're interested in the side effects of a monadic action but don't need to use the result, for example in IO which will be talked about later
 - The => symbol is used in type declarations to indicate constraints or class constraints on type variables. It is used in the context of defining types for functions or data structures to specify additional requirements or capabilities
+- The >> operator is used to sequence monadic computations and discard the result of the first computation, it's often used when you're interested in the side effects of a monadic action but don't need to use the result, for example in IO which will be talked about later
 - The >> operator has two signatures
 '''haskell
     (>>) :: Monad m => m a -> m b -> m b
@@ -285,6 +294,7 @@
 - This piece of code takes two monadic computations as arguments and returns a new monatic computation as a result
 - The => is a class constraint that states that type 'm' must be an instance of the 'Monad' class
 - Furthermore, Haskell's 'do' notation is specifically designed for working with monads, when you use 'do' notation 'f' is presumed to represent a monadic value or computation 
+- In 'do' notation, code is strictly evaluated rather than lazily evaluated, meaning that the code is executed in runtime from top to bottom as defined in the code structure, in order to have a strict evaluated 'do' notation is imperative, however let functions are still lazily evaluated within a 'do' block
 - <- Is a symbol used for binding values from monadic computations (monads), it extracts values from monads and use them in the context of other computations and is commonly utilized in 'do' notation to sequence and combine monadic actions
 - The semicolon ';' is used to separate different action or statements within a block, the 'do' notation allows you to sequence and combine monadic actions in a more structured style
 - The ultimate purpose of 'do' notation is to write code that performs a series of these monadic actions (computation or operation encapsulated in a monad)
@@ -321,7 +331,7 @@
 - Applicatives are similar to monads in the way that they are both abstractions (the process of simplifiying complex concepts or systems to make the code more readable) that help manage computations that have some sort of context or additional structure
 - However, unlike monads, applicatives do not allow you to bind variables and reuse values in the same way monads do
 - This limitation do not allow applicatives to bind and send variables between computations
-- To be defined as an applicative type class, the function must fulfill the requirement of being a functor type class
+- To be defined as an applicative type class, the function must fulfill the requirement of being a functor type class, the typeclass must also contain the 'pure' function and '<*>' the applicative operator
 - <*> Is an operator that applies a function inside a functor to a value that's also wrapped inside an applicative functor, this is provided by the Applicative class type, it's type signature looks as such
 ```haskell
     (<*>) :: f (a -> b) -> f a -> f b
@@ -347,7 +357,7 @@
 - In the context of Haskell and functional proramming a "pure value" refers to an immutable value that exists independently of any computational effects or side effect
 - The 'pure' function takes a value and 'lifts' it into applicative context, in other words it creates an applicative functor that wraps the value it lifts, turning it from value 'a' to value 'f a'
 - Generally, you can not directly apply an unpure function to a value wrapped in the applicative context when using the <*> operator
-- The (.) operator is the function composition operator, it is a built-in operator that takes in two functions as arguments and returns a new function that represents the composition of the two functions
+- The '.' operator is the function composition operator, it is a built-in operator that takes in two functions as arguments and returns a new function that represents the composition of the two functions
 ```haskell
     (.) :: (b -> c) -> (a -> b) -> a -> c
 ```
@@ -446,7 +456,7 @@
     sequence_ :: (Monad m) => [m a] -> m ()
 ```
 - sequence_ takes a list of monadic actions '[m a]' and returns a monadic action 'm ()', a computation with monadic context that does not produce any meaningful value where 'm' is any monad (including the IO monad)
-- The resulting IO computation can be evaluated in main (or the GHCi repl, which effectively is embedded inside of IO)
+- The resulting IO computation can be evaluated in main which is typically defined as an IO action with a 'do' block, allowing IO actiins to bind values to variables (or the GHCi repl, which effectively is embedded inside of IO)
 '''haskell
     >> sequence_ (fmap print[1..5]) :: IO ()
     1
@@ -470,6 +480,8 @@
     putStrLn :: String -> IO ()
     print :: Show a => a -> IO ()
 ```
+- 'IO ()' represents an IO action, this is because actions like 'putStrLn' and 'print' can not be functions, as functions in Haskell have to be pure
+- In order to get the result of an IO action, the IO action must be binded to a value inside of a variable inside of another IO action
 - Here, the function 'putStrLn' takes in a string and returns values of type IO (), which represent actions that perform side effects and has no significant return value
 - 'print' is similar to 'putStrLn' except that it only takes in a value of type 'a' if it implements the 'Show' typeclass rather than just any string
 - The type of main is always IO ()
@@ -496,6 +508,8 @@
 - This typeclass has one function it needs to implement, the 'lift' function. The 'lift' function takes a computation 'm a' in the base monad 'm' and lifts it into a monad transformer 't', enabling the value to work with multiple monadic functions
 - The implementation of monad transformers is comprised of two complementary libraries, 'transformers' and 'mtl'. The 'transformers' library provides the monad transformer layers and 'mtl' extends this functionality to allow implicit lifting between several layers
 - To use the transformers, we simply import the 'Trans' variants of each of the layers we want to compose and then wrap them in a newtype
+- 'newtype' is a keyword that is used to define a new type with a single constructor and a single field, the new type and the type of the field are in direct correspondance (isomorphic)
+- types defined with 'newtype' are checked at compile time yet ignored during runtime (at runtime it is treated as a string), also no additional matching is needed during pattern matching as there can only be one constructor
 ```haskell
     import Control.Monad.Trans
     import Control.Monad.Trans.State
@@ -516,7 +530,7 @@
 ```
 - Woahhh... So this is a long piece of code... Let's break it down :)
 - The code first imports from necessary libraries. 'Code.Monad'Trans' provides the monad transformer types, and 'Control.Monad.Trans.State' and 'Control.Monad.Trans.Writer' are specific monad transformer layers to be 'layered'
-- Next a 'newtype' named 'Stack' is declared, parametrized by a type variable 'a', the 'newtype' keyword is used to define a new type with a single constructor, in this case 'Stack' is a wrapper around a monad transformer stack
+- Next a 'newtype' named 'Stack' is declared, parametrized by a type variable 'a', in this case 'Stack' is a wrapper around a monad transformer stack
 - The single constructor of the 'Stack' newtype is then defined, it uses record syntax to label the constructor field as 'unStack' which hold the actual value of the monad transformer stack -> a complex looking type definition
 - 'StateT Int (WriterT [Int] IO) a' is the type of the monad transformer stack being wrapped by the 'Stack' newtype, it is a composition of three monads
 - 'IO' is the outermost monad in the stack, which allows for I/O operations, WriterT is the middle monad, parametrized by [Int] as the type to accumulate, lastly State T is the innermost monad transformer parametrized with an 'Int' as the state type, the 'a' at the end represents the type of value produced by the computation
