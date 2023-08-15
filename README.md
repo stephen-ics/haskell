@@ -730,3 +730,21 @@
 - This line showcases an example of using 'OverloadedStrings' and the 'Text' library
 - A 'str' is declares of 'Text' type and the String "bar" is then automatically converted into the 'Text' type
 
+## Cabal and Stack
+- To set up an existing project with a sandbox, run:
+`
+    $ cabal sandbox init
+`
+- This will create the .cabal-sandbox directory, which is the local path GHC will use to look for dependencies when building the project
+- To instal the dependencies from Hackage, run:
+`
+    $ cabal install --only-dependencies
+`
+- Finally, configure the library for builing:
+`
+    $ cabal configure
+`
+- Now we can launch a GHCi shell scoped with the modules from the project in scope:
+`
+    $ cabal repl
+`
