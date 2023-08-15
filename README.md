@@ -731,7 +731,7 @@
 - A 'str' is declares of 'Text' type and the String "bar" is then automatically converted into the 'Text' type
 
 ## Cabal and Stack
-- To set up an existing project with a sandbox, run:
+- To set up an existing project with a sandbox, run in the terminal:
 `
     $ cabal sandbox init
 `
