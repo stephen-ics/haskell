@@ -704,3 +704,29 @@
 ```
 - These laws correspond to the monad laws, it's just instead of binding two expressions, a composite function of the two functions is created, the laws still stand
 
+## Text
+- The usual 'String' type is a singly-linked list of characters, which, although simple, is not efficient in storage or locality. This is because each characters in a string are stored in 'heaps'
+- A 'heap' refers to a region of memory where dynmaically allocated memory blocks are stored, this means that each character in a string is allocated in separate memory locations across the heap, this results in non-contiguous storage and may require accessing differnent memory locations
+- The 'Text' and 'ByteString' libraries provide alternative efficient structures for working with contiguous blocks of data
+- 'ByteString' is useful when working with the ASCII character set, while 'Text' provides a text type for use with Unicode
+- The 'OverloadedStrings' extension allows us to overload the string type in the frontend language to use any one of the available string representations interchangeably, allowing you to choose between the default 'String' type, 'Text', 'ByteString'
+```haskell
+    class IsString a where
+        fromString :: String -> a
+    
+    pack :: String -> Text
+    unpack :: Text -> String
+```
+- This defines the 'IsString' type class and declares three functions 'fromString', 'pack', and 'unpack', these functions are used to convert between different string representations
+- fromString converts a 'String' into type 'a' while 'pack' and 'unpack' convert a String to and back from the 'Text' type
+- For example:
+```haskell
+    {-# LANGUAGE OverloadedStrings #-}
+    import qualified Data.Text as T
+
+    str :: T.Text
+    str = "bar"
+```
+- This line showcases an example of using 'OverloadedStrings' and the 'Text' library
+- A 'str' is declares of 'Text' type and the String "bar" is then automatically converted into the 'Text' type
+
