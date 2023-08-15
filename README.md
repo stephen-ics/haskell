@@ -630,3 +630,63 @@
 - So when 'computation' is defined using the 'Reader' monad, the 'bar' accessor function is applied to the environment 'MyContext' and retrieves the 'Int' value stored in the 'bar' field, assigning it to the variable 'n', the same happens for the accessor function 'foo' and variable 'x'
 - It then checks whether 'n' is greater than 0, if it is it returns Just x otherwise it returns 'Nothing'
 - runReader will run the following computation where the context, string and integer are applied to the function 'computation' and set ex1 and ex2 as each respective result
+
+### WriterT
+- The writer monad lets us emit a lazy stream of values from wthin a monadic context
+- The primary function 'tell' adds a value to the writer context
+```haskell
+    tell :: (Monoid w) => w -> Writer w ()
+```
+- The monad can be evaluated returning the collected writer context and optionally returned value in a tuple
+```haskell
+    execWriter :: (Mpnoid w) => Writer w a -> w
+    runWriter :: (Monoid w) => Writer w a -> (a, w)
+```
+- The following piece of code is a demonstration of the Writer monad in action
+```haskell
+    import Control.Monad.Writer
+    type MyWriter = Writer [Int] String
+
+    example :: MyWriter
+    example = do
+        tell [1..5]
+        tell [5..10]
+        return "foo"
+    
+    output :: (String, [Int])
+    output = runWriter example
+```
+- This piece of code imports the Writer monad transformer and creates a type alias for the 'MyWriter' type as a Writer, list of integers and string
+- The next line defines example as a MyWriter type and creates a do block that lifts the list of integers [1..5] and [5..10] into a writer context, then returns the string "foo"
+- Output, which returns a tuple of type (String, [Int]) and also lifted into writer context fulfills the argument requirement of a value in writer context 'w' and return value 'a', then the command runWriter is executed onto 'example' and a tuple containing the return value 'a' and the collected writer context 'w' are returned
+### ExceptT
+- The Exception monad allows logic to fail at any point during computation with a user-defined exception. The exception type is the first parameter of the monad type
+```haskell
+    throwError :: e -> Except e a
+    runExcept :: Except e a -> Either e a
+```
+- throwError will take in an exception type (message) 'e' and return the exception type and resultant type, wrapping it with 'Except' lifting it into the Except monad context
+- runExcept will take in an error type 'e' and a value 'a' wrapped in Except and either return an 'e' exception type or an 'a' value
+- The following piece of code is a demonstration of the Except monad in action
+```haskell
+    import Control.Monad.Except
+
+    type Err = String
+
+    safeDiv :: Int -> Int -> Except Err Int
+    safeDiv a 0 = throwError "Divide by zero"
+    safeDiv a b = return (a 'div' b)
+
+    example :: Either Err Int
+    example = runExcept $ do
+        x <- safeDiv 2 3
+        y <- safeDiv 2 0
+        return (x + y)
+```
+- Here the 'Err' type is defined to be a type alias for the 'String' type
+- Then a safeDiv is defined that takes in two integer arguments (the two integers that will be divided) and returns an exception with the 'Err' error message string, as well as the resultant Int if there 
+- In the case 'a', 'b', where 'a' is an Int and 'b' is 0, a "Divide by Zero" error is thrown, in the case that 'a' is an Int and 'b' is an Int that is not 0, the result is returned
+- The example is defined as an Either type with the possibilies being an 'Err' type or an 'Int' type
+- In the case of safeDiv 2 3, it returns Right (2 / 3), wrapping the computation in the Right constructor which indicates a successful computation, it is binded to 'x', on the other hand, 'y' will be unbound as an error Left "Divide by zero" is raised, indicating that the computation was not successful, whilst returning the thrown error message
+- Then 'x' + 'y' is returned, which does not get executed as 'y' is unbound due to the error, therefore the overall result returned will just be Left "Division by Zero"
+
