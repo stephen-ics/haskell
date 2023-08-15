@@ -276,7 +276,7 @@
 - The return function takes a value and turns it into a monadic value so that monadic functions can be applied to that value
 
 - Law 1: return a >>= f = f a
-- This law states that if you wrap a value 'x' using return, turning it into a monadic value and bind it with the function f, the result will be equivalent to directly applying function 'f' to value 'x'
+- This law states that if you wrap a value 'a' using return, turning it into a monadic value and bind it with the function f, the result will be equivalent to directly applying function 'f' to value 'a'
 
 - Law 2: m >>= return = m
 - This law states that if you bind a monadic value 'm' with the 'return' function, it's equivalent to the original monadic value 'm'
@@ -689,4 +689,18 @@
 - The example is defined as an Either type with the possibilies being an 'Err' type or an 'Int' type
 - In the case of safeDiv 2 3, it returns Right (2 / 3), wrapping the computation in the Right constructor which indicates a successful computation, it is binded to 'x', on the other hand, 'y' will be unbound as an error Left "Divide by zero" is raised, indicating that the computation was not successful, whilst returning the thrown error message
 - Then 'x' + 'y' is returned, which does not get executed as 'y' is unbound due to the error, therefore the overall result returned will just be Left "Division by Zero"
+
+## Klesli Arrows
+- The additional combinators for monads ((>=>), (<=<)) compose two different monadic actions in sequence. (<=<) is the monadic equivalent of the regular function composition operator (.) and (>=>) is just 'flip' (<=<)
+```haskell
+    (>=>) :: Monad m => (a -> m b) -> (b -> m c) -> a -> m c
+```
+- The type signature of the >=> infix operator takes in two functions, and creates a composite function that will take in an argument of type 'a' and a value of type 'c' lifted into monadic context
+- The monad laws can be expressed euivalently in terms of Kleisli composition
+```haskell
+    f >=> return = f --left identity law
+    return >=> f = f --right identity law
+    (f >=> g) >=> h = f >=> (g >=>) --associativity law
+```
+- These laws correspond to the monad laws, it's just instead of binding two expressions, a composite function of the two functions is created, the laws still stand
 
