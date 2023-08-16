@@ -86,7 +86,7 @@ many v = many_v where
 
 --this function checks whether the current characer 'c' in the stream matches a given predicate 'p' (is a digit, is a letter, a specific word, etc)
 satisfy :: (Char -> Bool) -> Parser Char
-satisfy p = item 'bind' \c -> --'c' is provided by item which takes in a string 's' and outputs a character 'c'
+satisfy p = item `bind` \c -> --'c' is provided by item which takes in a string 's' and outputs a character 'c'
     if p c
     then unit c
     else (Parser (\cs -> []))
@@ -98,15 +98,46 @@ oneOf s = satisfy (flip elem s)
 --it is necessary to flip the elem function as the first argument is usually the character, but as we do not know the character at this point, we can pass in the string 's' as the first argument and pass in the character 'c' as the second argument when satisfy is called
 
 chainl :: Parser a -> Parser (a -> a -> a) -> a -> Parser a
-chainl p op a = (p 'chainl1' op) <|> return a
+chainl p op a = (p `chainl1` op) <|> return a
 
 chainl1 :: Parser a -> Parser (a -> a -> a) -> Parser a
-p 'chainl1' op = do {a <- p; rest a}
-    where rest a = (do
-            f <- op
-            b <- p
-            rest (f a b))
-        <|> return a
+p `chainl1` op = do {a <- p; rest a}
+    where rest a = (do  f <- op
+                        b <- p
+                        rest (f a b))
+                    <|> return a
 
 --chainl and chainl1 is a parser combininator that parses left-associative expressions involving an initial value parsed by p and binary operators parsed by op. It uses the rest function to build a left-recursive expression tree, and it handles the case when no more operators are found using the <|> alternative combinator to return the original initial value
 --this is like parsing infix expressions from building an interpreter in GO!
+
+char :: Char -> Parser Char
+char c = satisfy (c ==)
+
+natural :: Parser Integer
+natural = read <$> some (satisfy isDigit)
+
+string :: String -> Parser String
+string [] = return []
+string (c:cs) = do { char c; string cs; return (c:cs)}
+
+token :: Parser a -> Parser a
+token p = do { a <- p; spaces; return a}
+
+spaces :: Parser String
+spaces = many $ oneOf " \n\r"
+
+digit :: Parser Char
+digit = satisfy isDigit
+
+number :: Parser Int
+number = do
+    s <- string "-" <|> return []
+    cs <- some digit
+    return $ read (s ++ cs)
+
+parens :: Parser a -> Parser a
+parens m = do
+    reserved "("
+    n <- m
+    reserved ")"
+    return n
