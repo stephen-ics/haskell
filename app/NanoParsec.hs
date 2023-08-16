@@ -66,3 +66,47 @@ option p q = Parser $ \s ->
         [] -> parse q s
         res -> res
 
+--the Alternative typeclass definition are the 'many' and 'some' functions, the 'many' function repeatedly a single function argument until the function fails and yields the result, the some function behaves the same except it will fail itself if there is not a single match
+
+-- | One or more as if f a raises an error, the program immediately halts
+some :: f a -> f [a]
+some v = some_v where
+    many_v = some_v <|> pure []
+    some_v = (:) <$> v <*> many_v
+
+--applying the cons operator to the 'v' (the result of f a) creates a list with the single element 'v', this list
+--then the resultant list with a single value is applied to the many_v list, effectively appending 'v' to the many_v list
+--it is important to note that in parsing, input is not always the same string, but rather the remainder of the string that needs to be parsed
+
+-- | Zero or more as if f a raises an error pure [] is returned
+many :: f a -> f [a]
+many v = many_v where
+    many_v = some_v <|> pure []
+    some_v = (:) <$> v <*> many_v
+
+--this function checks whether the current characer 'c' in the stream matches a given predicate 'p' (is a digit, is a letter, a specific word, etc)
+satisfy :: (Char -> Bool) -> Parser Char
+satisfy p = item 'bind' \c -> --'c' is provided by item which takes in a string 's' and outputs a character 'c'
+    if p c
+    then unit c
+    else (Parser (\cs -> []))
+
+oneOf :: [Char] -> Parser Char --a predicate that checks if a character (Char input in satisfy) is present in the string 's'
+oneOf s = satisfy (flip elem s)
+--flip takes a binary function that returns a new function with the arguments reversed a -> b -> c will become b -> c -> a
+--elem takes in a character and a list of characters, and checks if the character is in the list of characters
+--it is necessary to flip the elem function as the first argument is usually the character, but as we do not know the character at this point, we can pass in the string 's' as the first argument and pass in the character 'c' as the second argument when satisfy is called
+
+chainl :: Parser a -> Parser (a -> a -> a) -> a -> Parser a
+chainl p op a = (p 'chainl1' op) <|> return a
+
+chainl1 :: Parser a -> Parser (a -> a -> a) -> Parser a
+p 'chainl1' op = do {a <- p; rest a}
+    where rest a = (do
+            f <- op
+            b <- p
+            rest (f a b))
+        <|> return a
+
+--chainl and chainl1 is a parser combininator that parses left-associative expressions involving an initial value parsed by p and binary operators parsed by op. It uses the rest function to build a left-recursive expression tree, and it handles the case when no more operators are found using the <|> alternative combinator to return the original initial value
+--this is like parsing infix expressions from building an interpreter in GO!
