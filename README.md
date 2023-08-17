@@ -3,7 +3,7 @@
 
 ## Syntax
  - :: Is a type annotation used to specify the type of an expression
- - -> Is used to denote function types, the last -> denotes the return type of the function
+ - -> Is used to denote function types, the last -> denotes the return type of the function, if there is are no arrows in type definition it is denoting the type of the value, as the value is not a function
  - The syntax will look like 
 ```haskell 
     identifier :: arg1 type -> arg2 type -> return type

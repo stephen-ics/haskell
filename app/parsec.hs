@@ -1,6 +1,6 @@
 {-# OPTIONS_GHC -fno-warn-unused-do-bind #-}
 
-module NanoParsec where
+module Parsec where
 
 import Data.Char
 import Control.Monad
@@ -9,13 +9,13 @@ import Control.Applicative
 newtype Parser a = Parser { parse :: String -> [(a, String)] } --'a' is the value representing the value the parser is expected to produce (an AST Node for the parsed expression), 'String' is the remaining portion of the stream yet to be parsed
 --for example, in the case of 'Parser Int', 'Int' is the 'a', and this 'Parser' type is designed to parse input strings and produce integer AST Nodes
 
-runParser :: Parser a -> String -> a --runParser runs 
+runParser :: Parser a -> String -> a --takes a parser and a string and returns the parsed expression as an ast node
 runParser m s =
-    case parse m s of
+    case parse m s of --parse m s applies the parse function onto the Parser 'm' with argument string 's'
         [(res, [])] -> res --res is just a placeholder name for the parsed value 'a', the important part is that the String (list of Chars) is empty (everything has been parsed)
         [(_, rs)] -> error "Parser did not consume entire stream."
         _ -> error "Parser error."
-
+--eg runParser int "42" will return lit (42), aka the 'a' value
 --the parser is advanced by extracting a single character from the parser stream and returning a tuple containing itself and the rest of the stream, the parser will then scrutinize the character and either transform it in some portion of the output or advance the stream and proceed (depending on the character received) 
 item :: Parser Char
 item = Parser $ \s -> --this raises the tuple [(c, s)] or the empty list [] into the parser type
@@ -30,7 +30,7 @@ bind p f = Parser $ \s -> concatMap (\(a, s') -> parse (f a) s') $ parse p s  --
 --' represents a slightly modified or primed version of that variable or name
 
 unit :: a -> Parser a 
-unit a = Parser (\s -> [a, s])
+unit a = Parser (\s -> [(a, s)])
 
 instance Functor Parser where
     fmap f (Parser cs) = Parser (\s -> [(f a, b) | (a, b) <- cs s]) --cs is a funtion call within the Parser type that inputs 's' as an argument and returns (a, b) where 'a' is the parsed value and 'b' is the remaining string
@@ -69,8 +69,8 @@ option p q = Parser $ \s ->
 --the Alternative typeclass definition are the 'many' and 'some' functions, the 'many' function repeatedly a single function argument until the function fails and yields the result, the some function behaves the same except it will fail itself if there is not a single match
 
 -- | One or more as if f a raises an error, the program immediately halts
-some :: f a -> f [a]
-some v = some_v where
+someAlias :: f a -> f [a]
+someAlias v = some_v where
     many_v = some_v <|> pure []
     some_v = (:) <$> v <*> many_v
 
@@ -79,8 +79,8 @@ some v = some_v where
 --it is important to note that in parsing, input is not always the same string, but rather the remainder of the string that needs to be parsed
 
 -- | Zero or more as if f a raises an error pure [] is returned
-many :: f a -> f [a]
-many v = many_v where
+manyAlias :: f a -> f [a]
+manyAlias v = many_v where
     many_v = some_v <|> pure []
     some_v = (:) <$> v <*> many_v
 
@@ -112,28 +112,39 @@ p `chainl1` op = do {a <- p; rest a}
 
 char :: Char -> Parser Char
 char c = satisfy (c ==)
+--the char function is used to create a Parser that parses the specific character 'c'
 
 natural :: Parser Integer
 natural = read <$> some (satisfy isDigit)
+--natural is a parser that reads and returns a parses that is capable of parsing a natural number
 
 string :: String -> Parser String
 string [] = return []
 string (c:cs) = do { char c; string cs; return (c:cs)}
+--string takes in a string as an argument and returns a parser capable of parsing said string, 
 
 token :: Parser a -> Parser a
 token p = do { a <- p; spaces; return a}
+--it takes a parser 'p', parses 'a' using the parser 'p' and consumes any white spaces using the 'spaces' parser
 
 spaces :: Parser String
 spaces = many $ oneOf " \n\r"
+--spaces is a parser that matches zero or more spaces, it uses 'many' to repeatedly match any character that is one of the characters in the string " \n\r"
+
+reserved :: String -> Parser String
+reserved s = token (string s)
+--reserved is a function that takes a string argument 's', it uses the 'string' parser to match the input string 's' and consumes all spaces after 's'
 
 digit :: Parser Char
 digit = satisfy isDigit
+--digit is a parser that matches a single digit character (satisfying the isDigit predicate)
 
 number :: Parser Int
 number = do
     s <- string "-" <|> return []
     cs <- some digit
     return $ read (s ++ cs)
+--number is a parser that matches a signed integer, first it matches an optional minus sign, then it uses 'some' to match one or more digits 'cs', finally it concatenates the sign and the digits
 
 parens :: Parser a -> Parser a
 parens m = do
@@ -141,3 +152,5 @@ parens m = do
     n <- m
     reserved ")"
     return n
+--parens is a function that takes a parser 'm' as an argument, it uses the reserved function to parse an opening parenthesis '(', then it uses the parser 'm' to parse the value 'a' and bind it to 'n', then the closing parenthesis is parsed and the parsed value n is returned (this parses the parenthesis and automatically advances the parser to parse the next value)
+
