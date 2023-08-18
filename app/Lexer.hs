@@ -24,7 +24,7 @@ reservedOp :: String -> Parser ()
 reservedOp = Tok.reversedOp lexer
 --takes a string argument and parses a reserved operator, ensuring the parsed operator is not part of a longer identifier
 
-prefixOp :: String -> (a -> a) -> Ex.Oprator String() Identity a
+prefixOp :: String -> (a -> a) -> Ex.Operator String() Identity a
 prefixOp s f = Ex.Prefix (reservedOp s >> return f)
 --takes a parser for the operator symbol and a function that combines the operator and operand to produce an expression
 --'>>' sequences two actions, reservedOp s verifies it is the correct operator and return constructs a new monadic action 'f' lifted to monadic context
