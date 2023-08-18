@@ -1,6 +1,6 @@
 module Tokens where
 
-import Text.Parsec.Token
+import qualified Text.Parsec.Token as Tok --qualified allows you change the reference name of the imported module
 
 langDef :: Tok.LanguageDef ()
 langDef = Tok.LanguageDef
