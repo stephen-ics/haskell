@@ -18,4 +18,4 @@ langDef = Tok.LanguageDef
     Tok.caseSensitive = True
 }
 
---defining a record named 'langDef' (not built-in) with various settings to configure the lexer
+--defining a record named 'langDef' (the Tok.makeTokenParser function recognizes these keywords)
