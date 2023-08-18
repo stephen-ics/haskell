@@ -37,13 +37,12 @@ instance Functor Parser where
 --the '|' here separates the generator (a, b) <- cs s, and the transformer (f a, b)
 
 instance Applicative Parser where 
-    pure = return
+    pure = unit
     (Parser cs1) <*> (Parser cs2) = Parser (\s -> [(f a, s2) | (f, s1) <- cs1 s, (a, s2) <- cs2 s1])
 --when you bind values cs1 s you can choose to extract either the function or the parsed value from the tuple (if there is a function), here cs1 is completely different from the cs that represents the rest of a string
 --the function will take a parsed value and produce a new parser, this will allow for more complex parsers for example 'p1' that parses an integer and 'p2' that parses an operator can be combined to create an operator that parses an expression (ofc Parser f is applied to Parser a as this is an applicative functor so the two must be lifted in the same context)
 
 instance Monad Parser where
-    return = unit
     (>>=) = bind
 
 instance MonadPlus Parser where --represents monads
@@ -69,18 +68,18 @@ option p q = Parser $ \s ->
 --the Alternative typeclass definition are the 'many' and 'some' functions, the 'many' function repeatedly a single function argument until the function fails and yields the result, the some function behaves the same except it will fail itself if there is not a single match
 
 -- | One or more as if f a raises an error, the program immediately halts
-someAlias :: f a -> f [a]
-someAlias v = some_v where
+some :: (Alternative f, Applicative f, Functor f) => f a -> f [a]
+some v = some_v where
     many_v = some_v <|> pure []
     some_v = (:) <$> v <*> many_v
 
 --applying the cons operator to the 'v' (the result of f a) creates a list with the single element 'v', this list
---then the resultant list with a single value is applied to the many_v list, effectively appending 'v' to the many_v list
+--then the resultant list with a single value is applied to the many_v lixast, effectively appending 'v' to the many_v list
 --it is important to note that in parsing, input is not always the same string, but rather the remainder of the string that needs to be parsed
 
 -- | Zero or more as if f a raises an error pure [] is returned
-manyAlias :: f a -> f [a]
-manyAlias v = many_v where
+many :: (Alternative f, Applicative f, Functor f) => f a -> f [a]
+many v = many_v where
     many_v = some_v <|> pure []
     some_v = (:) <$> v <*> many_v
 
@@ -115,7 +114,7 @@ char c = satisfy (c ==)
 --the char function is used to create a Parser that parses the specific character 'c'
 
 natural :: Parser Integer
-natural = read <$> some (satisfy isDigit)
+natural = read <$> Parsec.some (satisfy isDigit)
 --natural is a parser that reads and returns a parses that is capable of parsing a natural number
 
 string :: String -> Parser String
@@ -128,7 +127,7 @@ token p = do { a <- p; spaces; return a}
 --it takes a parser 'p', parses 'a' using the parser 'p' and consumes any white spaces using the 'spaces' parser
 
 spaces :: Parser String
-spaces = many $ oneOf " \n\r"
+spaces = Parsec.many $ oneOf " \n\r"
 --spaces is a parser that matches zero or more spaces, it uses 'many' to repeatedly match any character that is one of the characters in the string " \n\r"
 
 reserved :: String -> Parser String
@@ -142,7 +141,7 @@ digit = satisfy isDigit
 number :: Parser Int
 number = do
     s <- string "-" <|> return []
-    cs <- some digit
+    cs <- Parsec.some digit
     return $ read (s ++ cs)
 --number is a parser that matches a signed integer, first it matches an optional minus sign, then it uses 'some' to match one or more digits 'cs', finally it concatenates the sign and the digits
 
@@ -175,10 +174,10 @@ int = do
 --both of these steps are fundemental to the parsing process
 
 expr :: Parser Expr
-expr = term `chainl1` addop
+expr = token term `chainl1` addop
 
 term :: Parser Expr
-term = factor `chainl1` mulop
+term = token factor `chainl1` mulop
 
 factor :: Parser Expr
 factor =
