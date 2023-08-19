@@ -1,4 +1,4 @@
-module Syntax where
+module Syntax where --the ast
 
 data Expr
     = Tr --true
