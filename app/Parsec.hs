@@ -1,8 +1,9 @@
 module Parsec where
 
-import Control.Monad.Identity
 import Lexer
 import Syntax
+
+import Control.Monad.Identity
 import qualified Text.Parsec.Expr as Ex
 
 --prefix operators

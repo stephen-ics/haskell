@@ -4,7 +4,7 @@ data Expr
     = Tr --true
     | Fl --false
     | Zero
-    | isZero Expr 
+    | IsZero Expr 
     | Succ Expr --the "successor" expression
     | Pred Expr --the "predecessor" expression
     --Succ and Pred are built-in constructors provided by Haskell's Prelude, it represents the successor operation in Peano arithmetic

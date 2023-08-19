@@ -1,8 +1,7 @@
 module Main where
 
 import Eval
-import Parser
-import Pretty
+import Parsec
 
 import Control.Monad.Trans
 import System.Console.Haskeline
