@@ -3,6 +3,7 @@ module Eval where
 import Syntax
 
 import Data.Maybe
+import Data.Functor
 
 isNum Syntax.Zero = True --if the current value is Syntax.Zero, return true
 isNum (Syntax.Succ t) = isNum t --this will recurse all the way down to isNum Syntax.Zero if it is a number e.g 2 is represented as Succ (Succ (Syntax.Zero))

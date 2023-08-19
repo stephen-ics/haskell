@@ -6,6 +6,7 @@ import Tokens
 import Data.Functor.Identity
 import Text.Parsec
 import Text.Parsec.String (Parser)
+import Text.Parsec.Language (emptyDef)
 import qualified Text.Parsec.Expr as Ex
 import qualified Text.Parsec.Token as Tok
 
@@ -43,7 +44,7 @@ table =
         [ --precedence level 1
             prefixOp "succ" Syntax.Succ, --associates the "succ" operator with the Succ function, passed into prefixOp as an argument and returned as 'Ex.Operator String() Identity a' type
             prefixOp "pred" Syntax.Pred,
-            prefixOp "isZero" Syntax.IsZero
+            prefixOp "iszero" Syntax.IsZero
         ]
     ]
 
