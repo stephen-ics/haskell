@@ -51,3 +51,5 @@ contents p = do
     return r
 
 parseExpr s = parse (contents expr) "<stdin>" s
+--parseExpr is a function that takes in one argument 's', the string to be parsed
+--The parse function, provided by the Text.Parsec library takes in three arguments, the parser (contents expr), "<stdin>" which serve as the source name, used for error reporting to indicate the source of the input being parsed, while the last argument 's' is the string to be parsed

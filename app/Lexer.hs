@@ -12,7 +12,7 @@ parens :: Parser a -> Parser a
 parens = Tok.parens lexer --these functions take in lexer as an argument to specify the rules defined in lexer
 --returns a new parser that is used to parse parenthesis while respecting the language definition settings
 
-reserved :: String -> Parser ()
+reserved :: String -> Parser ()--() defines a parser that does not need to capture any meaningful value, the only purpose is to indicate that the parser succeeded
 reserved = Tok.reserved lexer
 --takes a string argument and parses a reserved keyword, ensuring the parsed operator is not part of a longer identifier
 
