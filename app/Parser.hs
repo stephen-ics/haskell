@@ -6,7 +6,6 @@ import Tokens
 import Data.Functor.Identity
 import Text.Parsec
 import Text.Parsec.String (Parser)
-import Text.Parsec.Language (emptyDef)
 import qualified Text.Parsec.Expr as Ex
 import qualified Text.Parsec.Token as Tok
 

@@ -12,7 +12,7 @@ isNum _ = False
 
 isVal :: Expr -> Bool
 isVal Syntax.Tr = True
-isVal Syntax.Fl = False
+isVal Syntax.Fl = True
 isVal t | isNum t = True --'|' introduces a pattern guard, allowing you to include additional conditionals that must be satisfied for the pattern to match, in this case 't' must be a natural number
 isVal _ = False
 --normal form or 'nf' can not be further reduced, values are in normal form and consist of True, False, and literal numbers
