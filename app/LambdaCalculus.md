@@ -75,3 +75,35 @@
 - Now both functions '(λxy.x)' have an argument 'z', after applying the argument 'z' to both functions we get 'λz.(λy.z)(λy.z)'
 - (λy.z) takes in one argument 'y' while, this argument is the second '(λy.z)', after subsituting 'y' for '(λy.z)' in the body of the function, we get 'z', as 'y' is not utilized, resulting in λz.z, which... if we check above is actually equivalent to 'I'! How cool is that!
 - This fact is a useful sanity check when testing an implementation of the lambda calculus
+
+## Implementation
+- The simplest implementation of the lambda calculus syntax with named binders is the following definition
+```haskell
+    type Name = String
+
+    data Expr
+        = Var Name
+        | App Expr Expr
+        | Lam Name Expr
+```
+- There are several lexical syntax choices for lambda expressions, we will simply choose the Haskell convention which denotes the lambda by the backslash (\) to the body with (->), and application by spaces (where you apply a function to its argument simply by writing them next to each other, separated by a space)
+- Named variables are alphanumeric sequences of characters
+- Logical notation: 
+``` 
+    const = λxy.x
+```
+- Haskell notation:
+```
+    const = \x y -> x
+```
+- In addition, terms like literal numbers of booleans can be added, these make writing examples easier
+- For these terms, we will add a 'Lit' constructor
+```haskell
+    data Expr
+        = ...
+        | Lit Lit
+    
+    data Lit
+        = Lint Int
+        | LBool Bool
+```
