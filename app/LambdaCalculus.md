@@ -46,3 +46,32 @@
 ```
 - For example the variable 'x' in the expression above is bound on the inner lambda, while 'y' is bound on the outer lambda, this is referred to as 'name shadowing', in other words, the inner variable takes precedence over the outer variable 'shadowing' it
 - When 'x' is used inside the inner lambda, it refers to the 'x' parameter of the inner lambda, not the 'x' parameter of the outer lambda
+
+## SKI Combinators
+- There are three fundamental closed expressions called SKI combinators
+```
+    S = λf.(λg.(λx.fx(gx)))
+    K = λx.λy.x
+    I = λx.x
+```
+- In Haskell, these are written simply as
+```haskell
+    s f g x = f x (g x)
+    k x y = x
+    i x = x
+```
+- Moses Schönfinkel showed that all closed lambda expressions can be expressed in terms of only the 'S' and 'K' combinators, even the 'I' combinator, for example one can show that 'SKK' reduces to 'I'
+```
+    SKK
+    = (λxyz.xz(yz))(λxy.x)(λxy.x)
+    = λz.((λxy.x)z)((λxy.x)z)
+    = λz.(λy.z)(λy.z)
+    = λz.z
+    = I
+```
+- So... what on Earth did we just see... Well, it's not so bad if you break it down step by step!
+- 'λxyz.xz(yz)' takes in three parameters, 'x', 'y', and 'z', in this case two of the three arguments are provided, where 'x' is the first (λxy.x) while 'y' is the second (λxy.x)
+- After applying these variable bindings to the body of the function we get λz.((λxy.x)z)((λxy.x)z)
+- Now both functions '(λxy.x)' have an argument 'z', after applying the argument 'z' to both functions we get 'λz.(λy.z)(λy.z)'
+- (λy.z) takes in one argument 'y' while, this argument is the second '(λy.z)', after subsituting 'y' for '(λy.z)' in the body of the function, we get 'z', as 'y' is not utilized, resulting in λz.z, which... if we check above is actually equivalent to 'I'! How cool is that!
+- This fact is a useful sanity check when testing an implementation of the lambda calculus
