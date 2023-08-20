@@ -32,7 +32,7 @@
 ```
 - This defines an infix operator '$' that takes in a function which takes in argument type 'a', an argument of type 'a', and evaluated to a value of type 'b', the same value the function evaluates to
 
-## Data types
+## Data Types
  - 'data' is a keyword used to define an algebraic data type (sum types and product types)
  - The identifier/name for said data type must begin with a capital letter
  - '|' Define sum types, an algebraic data type that consists of multiple options of type constructors
