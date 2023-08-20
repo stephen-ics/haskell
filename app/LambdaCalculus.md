@@ -137,3 +137,43 @@
     (λx.e)a -> [x/a]e, if x is not a set fv(a)
 ```
 - There are several binding libraries and alternative implementations of the lambda calculus syntax that avoid these problems, it is a very common problem and is very easy to implement incorrectly, even for experts!
+
+## Conversion and Equivalences
+### Alpha Equivalence
+```
+    (λx.e) α= (λy.[x/y]e)
+```
+- Alpha equivalence is the property (when using named binders) that changing the variable on the binder and throughout the body of the expression should not change the fundemental meaning of the whole expression, so the following are alpha-equivalent
+```
+    λxy.xy α= λab.ab
+```
+
+### Beta-Reduction
+- Beta reduction is simply a single substitution step, replacing a variable bound by a lambda expression with the argument to the lambda throughout the body of the expression
+```
+    (λx.a)y β→ [x/y]a
+```
+- This is justified by the fact that if we apply both sides to a term, one step of beta reduction turns the left side to the right side
+```
+    (λx.ex)e′ β→ ee′, if x /∈ fv(e)
+```
+
+### Eta-Reduction
+- Eta reduction is the process of simplifiying a lambda abstraction by removing uncessary lambda expressions
+```
+    λx.ex η→ e if x /∈ fv(e)
+```
+- If you have a lambda abstraction that takes an argument and immediately applies it to a function, you can simplify it by removing the argument and applying the function directly, consider the case as depicted above where a lambda abstraction takes an argument 'x' and immediately applies to the a function 'g'
+- This situation is a candidate for eta reduction as we can simplify it by removing the redundant parameter 'x' and applying it to 'g' directly
+- This is based on the principle that if a lambda abstraction immediately applies a function to its argument, we can simplify it to just the function itself
+
+### Eta-Expansion
+- The opposite of eta reduction is eta expansion, which takes a function that is not saturated (it does not have all of its expected arguments) and makes all variables explicitly bound in a lambda, eta expansion will be important when we discuss translation into STG
+```haskell
+    add :: Int -> Int -> Int
+    add x y = x + y
+
+    addEtaExpand :: Int -> Int -> Int
+    addEtaExpand x = \y -> x + y
+```
+- Here, the second argument 'y' is explicitly bound in a lambda expression
