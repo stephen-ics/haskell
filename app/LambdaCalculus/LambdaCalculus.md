@@ -177,3 +177,36 @@
     addEtaExpand x = \y -> x + y
 ```
 - Here, the second argument 'y' is explicitly bound in a lambda expression
+
+## Reduction
+- Evaluation of a lambda calculus expression proceeds by beta reduction. The variables bound in a lambda are substituted across the body of the lambda
+- There are several degrees of freedom in the design space about how to do this, and in which order an expression should be evaluated
+- For instance, we could evaluate under the lambda expression and then substitute variables into it, or we could evaluate the arguments and then substitute and then reduce the lambda expression
+- More of this will be discussed in the section on Evaluation models
+```
+    Untyped> (\x . x) 1
+    1
+
+    Untyped> (\x y . y) 1 2
+    2
+
+    Untyped> (\x y z . x z (y z)) (\x y . x) (\x y . x)
+        => \x y z . (x z (y z))
+        => \y z . ((\x y . x) z (y z))
+            => \x y . x
+            => \y . z
+            => z
+        => \z . z
+```
+- Note that the code evaluated above was SKK which was encountered earlier
+- In the untyped lambda calculus we can freely represent infinitely diverging expressions
+```
+    Untyped> \f . (f (\x . (f x x)) (\x . (f x x)))
+```
+- Here, the function 'f' is applied to two arguments '(\x . (f x x))', and '(\x . (f x x))', both self-application of 'f' to two arguments 'x' and 'x'
+- This is an expression that takes a function 'f' and applies it to two instances of itself, each involving self-application
+- This creates a cyclic structure of self application that can lead to infinitely diverging computations
+```
+    Untyped> (\x . x x) (\x . x x)
+```
+- The example above is a more direct example, when '(\x . x x)' is subsituted into the body as 'x', the new expression becomes (\x . x x)(\x . x x), creating an infinite stream of same expression
