@@ -1,7 +1,7 @@
 # The Parsec Library
-- THe Parsec library defines a set of common combinations much like the operators defined in NanoParsec.hs
+- The Parsec library defines a set of common combinations much like the operators defined in NanoParsec.hs
 - 'char': Match the given character
-- 'strng': Match the given string
+- 'string': Match the given string
 - '<|>': The choice operator tries to parse the first argument before proceeding to the second
 - 'many': Consumes an arbitrary number of patterns matching the given pattern and returns them as a list
 - 'many1': Like many but requires at least one match
