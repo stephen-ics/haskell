@@ -93,7 +93,7 @@
     const = λxy.x
 ```
 - Haskell notation:
-```
+```haskell
     const = \x y -> x
 ```
 - In addition, terms like literal numbers of booleans can be added, these make writing examples easier
@@ -107,3 +107,33 @@
         = Lint Int
         | LBool Bool
 ```
+
+## Substitution
+- Evaluation of a lambda term ((λx.e)a) proceeds by substitution of all free occurences of the variable 'x' in 'e' with the argument 'a'
+- A single substitution step is called a 'reduction'
+- We write the substitution application in brackets before the expression it is to be applied over, [x/a]e maps the variable x to the new replacement 'a' over the expression 'e'
+```
+    (λx.e)a -> [x/a]e
+```
+- A substitution metaveriable will be written as [s]
+- In detail, a substitution is defined like this
+```
+    [x/a]x = a
+    [x/a]y = y, if x != y
+    [x/a]ee' = ([x/a]e)([x/a]e')
+    [x/a]λx.e = λx.e
+    [x/a]λy.e = λy.[x/a], if x != y and y is not in fv(a)
+```
+- fv(e) is the set of free variables in the expression 'e'
+- the last two define scope cases where 'x' is overriden by the inner λx and how 'y' is not overriden unless 'y' is in a set of free variables in 'e' or x = y, in which case the 'y' in the expression is overriden by the inner 'y'
+- The fundamental issue with using locally named binders is the problem of 'name capture' or how to handle the case where a substitution conflicts with the names of free variables
+- We need the condition in the last case to avoid the naive substitution that would fundementally alter the meaning of the following expression when 'y' is rewritten to 'x'
+```
+    [y/x](λx.xy) -> λx.xx
+```
+- By convention, it is always good to utilize 'capture-avoiding' substitution
+- Substitution will only proceed if the variable is not in the set of free variables of the expression, and if it does then a fresh variable will be created in its place
+```
+    (λx.e)a -> [x/a]e, if x is not a set fv(a)
+```
+- There are several binding libraries and alternative implementations of the lambda calculus syntax that avoid these problems, it is a very common problem and is very easy to implement incorrectly, even for experts!
