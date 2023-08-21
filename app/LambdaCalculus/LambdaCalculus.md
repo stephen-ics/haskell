@@ -210,3 +210,45 @@
     Untyped> (\x . x x) (\x . x x)
 ```
 - The example above is a more direct example, when '(\x . x x)' is subsituted into the body as 'x', the new expression becomes (\x . x x)(\x . x x), creating an infinite stream of same expression
+
+## Let
+- In addition to application, a construct known as a 'let binding' is often added to the lambda calculus syntax
+- In the untyped lambda calculus, let bindings are semantically equivalent to applied lambda expressions
+```
+    let a = e in b := (λa.b)e 
+```
+- (λa.b)e can also be viewed as [a/e]b
+- In our language, let statemenets will be written like they appear in Haskell
+```haskell
+    let a = e in b
+```
+- Toplevel expressions will be written as 'let' statements without a body to indicate that they are added to the global scope
+- The Haskell language does not use this convention but OCaml, StandardML use this convention
+- In Haskell, the preceding let is simply omitted for toplevel declarations
+```haskell
+    x = 42 --haskell omits the let keyword
+
+    let S f g x = f x (g x); --takes in function 'f', 'g' and value 'x'
+    let K x y = x; --takes in function 'x', 'y', returns 'x'
+    let I x = x; --takes in 'x' returns 'x'
+
+    let skk = S K K;
+```
+- The above us a 'let' statement to define the SKI combinators
+- For now, the evaluation rule for 'let' is identical to that of an applied lambda
+```
+    (λx.e)v -> [x/v]e (E-Lam)
+    let x = v in e -> [x/v]e (E-Let) 
+```
+- In later variations of the lambda calculus, let expressions will have different semantics and will differ from applied lambda expressions, more on this will be discussed in the section on Hindley-Milner inference
+- Everything can be a λ term
+    - 0
+    - 1
+    - 2
+    - succ
+    - pred
+    - not
+    - and
+    - or
+    - add
+    - mul
