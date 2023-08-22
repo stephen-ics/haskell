@@ -223,18 +223,20 @@
     let a = e in b
 ```
 - Toplevel expressions will be written as 'let' statements without a body to indicate that they are added to the global scope
-- The Haskell language does not use this convention but OCaml, StandardML use this convention
-- In Haskell, the preceding let is simply omitted for toplevel declarations
+- The Haskell language does not use this convention but OCaml and StandardML use this convention
 ```haskell
-    x = 42 --haskell omits the let keyword
-
+    x :: int
+    x = 42 
+```
+- In Haskell, the preceding let is simply omitted for toplevel declarations as demonstrated above
+```haskell
     let S f g x = f x (g x); --takes in function 'f', 'g' and value 'x'
     let K x y = x; --takes in function 'x', 'y', returns 'x'
     let I x = x; --takes in 'x' returns 'x'
 
     let skk = S K K;
 ```
-- The above us a 'let' statement to define the SKI combinators
+- The above uses a 'let' statement to define the SKI combinators, though it is unconventional to use the 'let' statement in top-level declarations
 - For now, the evaluation rule for 'let' is identical to that of an applied lambda
 ```
     (λx.e)v -> [x/v]e (E-Lam)
@@ -252,3 +254,28 @@
     - or
     - add
     - mul
+
+## Recursion
+- The most famous combinator, is probably Curry's Y combinator
+- Within an untyped lambda calculus, Y can be used to allow an expression to contain a reference to itself and reduce on itself permitting recursion and looping logic
+- The Y combinator is one of the many so called 'fixed point combinators'
+```
+    Y = λR.(λx.(R(xx))λx.(R(xx)))
+```
+- Here, Y is quite special in that the given R it returns the fixed point of R
+```
+    YR = λf.(λx.(f(xx))λx.(f(xx)))R
+    = (λx.(R(xx))λx.(R(xx)))
+```
+- For example, the factorial function can be defined recursively in terms of repeated applications of itself to fixpoint until the base case of 0
+```
+    n! = n(n-1)!
+
+    fac 0 = 1
+    fac n = R(fac) = R(R(fac))
+```
+
+- One can also prove that the Y-combinator can be expressed in terms of the S and K combinators
+```
+    Y = SSK(S(K(SS(S(SSK))))K)
+```
