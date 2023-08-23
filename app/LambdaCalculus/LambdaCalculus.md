@@ -256,16 +256,19 @@
     - mul
 
 ## Recursion
-- The most famous combinator, is probably Curry's Y combinator
+- The most famous combinator is probably Haskell Curry's Y combinator
 - Within an untyped lambda calculus, Y can be used to allow an expression to contain a reference to itself and reduce on itself permitting recursion and looping logic
 - The Y combinator is one of the many so called 'fixed point combinators'
 ```
     Y = λR.(λx.(R(xx))λx.(R(xx)))
 ```
 - Here, Y is quite special in that the given R it returns the fixed point of R
+- A fixed point is a value that remains unchanged when the function is applied to it, in other words if 'f(x) = x', then 'x' is a fixed point of 'f'
 ```
     YR = λf.(λx.(f(xx))λx.(f(xx)))R
     = (λx.(R(xx))λx.(R(xx)))
+    = R(λx.(R(xx))λx.(R(xx)))
+    = R Y R
 ```
 - For example, the factorial function can be defined recursively in terms of repeated applications of itself to fixpoint until the base case of 0
 ```
@@ -274,8 +277,39 @@
     fac 0 = 1
     fac n = R(fac) = R(R(fac))
 ```
-
+- Here, the function R is going to applied continuously until the condition fac '0' is met, with the result of the last function being the input of the new function
 - One can also prove that the Y-combinator can be expressed in terms of the S and K combinators
 ```
     Y = SSK(S(K(SS(S(SSK))))K)
+```
+- In an untyped lambda calculus language without explicit fixpoint or recurisve let bindings, the Y combinator can be used to create both of these constructs out of nothing but lambda expressions
+- However, it is more common to just add either an atomic fixpoint operator or a recursive let as a fundemental construct in the term syntax
+```
+    e := x
+        e1e2
+        λx.e
+        fix e
+```
+- Where 'fix' has the evaluation rule:
+```
+    fix v -> v (fix v)
+```
+- Together with the fixpoint (or the Y combinator) it is possible to create let bindings which contain a reference to itself with the body of the bound expression, these will be called 'recursive let bindings', and they are written as 'let rec' in ML dialects
+- For now, we will implement recursive lets as simply syntactic sugar for wrapping a fixpoint around a lambda binding by the following equivalence
+```
+    let rec x = e1 in e2 = let x = fix (\x. e1) in e2
+```
+- So for example, we can now write down two functions: factorial and fibonnaci to show both styles, on eis written with 'let rec' and the other with explicit 'fix'
+```haskell
+    let fact = fix (\fact -> \n ->
+        if (n == 0)
+            then 1
+            else (n * (fact (n-1))));
+
+    let rec fib n =
+    if (n == 0)
+    then 0
+    else if (n == 1)
+    then 1
+    else ((fib (n-1)) + (fib (n-2)));
 ```
