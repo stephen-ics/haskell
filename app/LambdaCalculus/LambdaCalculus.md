@@ -1,4 +1,5 @@
 # Lambda Calculus
+- The lambda calculus can be called the 'smallest universal programming language in the world'
 - The lambda calculus consists of three terms and all valid recursive combinations thereof
 ```
     (λx.x)(λy.y)
@@ -256,14 +257,49 @@
     - mul
 
 ## Recursion
+### Fixed Points
+- Consider the equation 'x = x² + 4', if asked to solve the value of 'x', a student might re-arrange the equation and solve using the quadratic formula
+- However, this equation can also be expressed and solved as fixed points
+- A 'fixed point' of a function 'f' is an input that is equal to its output, that is, 'x' is a fixed point of the function 'f' if x = f(x). The notation Fix(f) denotes the set of fixed points of the function 'f'
+- Now if we define a function 'f' such that 'f(x) = x² + 4', we can now rewrite the original equation as x = f(x),, in other words, the solution to the equation are the fixed points of the function 'f'!
+- With an understanding of fixed points, our goal is to find a way to obtain fixed points when the equation has the form 'f = F(f)' in which 'f' is not a number, but a function, this is where the Y Combinator comes in
+
+### The Y Combinator
 - The most famous combinator is probably Haskell Curry's Y combinator
-- Within an untyped lambda calculus, Y can be used to allow an expression to contain a reference to itself and reduce on itself permitting recursion and looping logic
-- The Y combinator is one of the many so called 'fixed point combinators'
+- Within an untyped lambda calculus, Y can be used to allow an expression to contain a reference to itself and reduce on itself permitting recursion and looping logic and is one of the many so called 'fix point combinators'
+- The Y combinator takes a functional as input and returns the (unique) fixed point of that functional as its output
+- A functional is a function that takes a function for its input, therefore, the fixed point of a functional is going to be a function, the goal is to find a functional whose fixed point is the recursive function that is wanted to be defined
+- Using the concepts of functionals and fixed points, it is possible to eliminate explicit recursion for a function through two steps
+    1. Find a function whose fixed point is the recursive function we seek
+    2. Find the fixed point of a functional without the use of recursion
+- A source transformation takes care of the first step while the Y combinator takes care of the second
+
+### Deriving the Y Combinator
+- To derive the Y combinator, we start with the property we seek, namely, if we give the Y combinator a functional F, then Y(F) needs to be a fixed point, therefore
+```
+    Y(F) = F(Y(F))
+```
+- Using a bit of lambda calculus, we can wrap the call to Y in a lambda abstraction, though not the full Y Combinator, this equation expresses the recursive behavior of the Y combinator
+```
+    Y(F) = F(λx.(Y(F))(x))
+```
+- Now, when the function 'Y' is invoked. it calls the function 'F', passes it λx.(Y(F))(x) which is equivalent to the fixed point, this can be represented in JavaScript as
+```javascript
+    function Y(f) { return F(function (x) { return (Y(F)) (x) ; } ) ; }
+```
+- Though this function finds the fixed point of a functional, the 'Y' calls itself recursively and hence recursion has not really be eliminated yet, it has just been moved into the function 'Y'
+- Using the U combinator, it is possible to eliminate recursive calls inside the Y combinator, which, with a couple more transformations get us
+```
+    Y = (λh.λF.F(λ x.((h(h))(F))(x))) (λh.λF.F(λ x.((h(h))(F))(x)))
+```
+- Note that no reference to Y is made
+
+## Applying the Y Combinator
+- The Y Combinator is defined as
 ```
     Y = λR.(λx.(R(xx))λx.(R(xx)))
 ```
-- Here, Y is quite special in that the given R it returns the fixed point of R
-- A fixed point is a value that remains unchanged when the function is applied to it, in other words if 'f(x) = x', then 'x' is a fixed point of 'f'
+- Here, Y given R it returns the fixed point of R, where Y R = R Y R
 ```
     YR = λf.(λx.(f(xx))λx.(f(xx)))R
     = (λx.(R(xx))λx.(R(xx)))
