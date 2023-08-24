@@ -96,7 +96,7 @@ oneOf s = satisfy (flip elem s)
 --elem takes in a character and a list of characters, and checks if the character is in the list of characters
 --it is necessary to flip the elem function as the first argument is usually the character, but as we do not know the character at this point, we can pass in the string 's' as the first argument and pass in the character 'c' as the second argument when satisfy is called
 
-chainl :: Parser a -> Parser (a -> a -> a) -> a -> Parser a
+chainl :: Parser a -> Parser (a -> a -> a) -> a -> Parser a --this function will return either the operator of a function and its two operands, or just the value itself
 chainl p op a = (p `chainl1` op) <|> return a
 
 chainl1 :: Parser a -> Parser (a -> a -> a) -> Parser a
@@ -160,7 +160,7 @@ data Expr --these constructors represent different nodes in the ast for expressi
     | Lit Int
     deriving Show
 
-eval :: Expr -> Int
+eval :: Expr -> Int --evaluation is built into the parser
 eval ex = case ex of
     Add a b -> eval a + eval b
     Mul a b -> eval a * eval b
@@ -173,13 +173,13 @@ int = do
     return (Lit n) --parses the integer by wrapping the value in a 'Lit' constructor
 --both of these steps are fundemental to the parsing process
 
-expr :: Parser Expr
+expr :: Parser Expr --essentially an expr can be represented as term + expr or just a term, chainl1 will determine whether it is a term + expr or just a term
 expr = token term `chainl1` addop
 
-term :: Parser Expr
+term :: Parser Expr --a term can be represented as a factor * a term or just a factor
 term = token factor `chainl1` mulop
 
-factor :: Parser Expr
+factor :: Parser Expr --a factor can be represented as a bracketed expression (expr) or an int
 factor =
     int
     <|> parens expr

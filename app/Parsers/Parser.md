@@ -1,6 +1,9 @@
 # Parsers
 - _The majority of the comments in this section will be comments written inline, along with the code_
 
+## Functional Parsing
+- Functional parsing is essentially when you have a function (parser combinator) that takes in other functions (parsers) as input and outputs a function (a more complex parser)
+
 ## The Parsec Library
 - The Parsec library defines a set of common combinations much like the operators defined in NanoParsec.hs
 - 'char': Match the given character
