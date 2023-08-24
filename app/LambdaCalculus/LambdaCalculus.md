@@ -282,7 +282,7 @@
 ```
     Y = SSK(S(K(SS(S(SSK))))K)
 ```
-- In an untyped lambda calculus language without explicit fixpoint or recurisve let bindings, the Y combinator can be used to create both of these constructs out of nothing but lambda expressions
+- In an untyped lambda calculus language without explicit fixpoint or recursive let bindings, the Y combinator can be used to create both of these constructs out of nothing but lambda expressions
 - However, it is more common to just add either an atomic fixpoint operator or a recursive let as a fundemental construct in the term syntax
 ```
     e := x
@@ -312,4 +312,19 @@
     else if (n == 1)
     then 1
     else ((fib (n-1)) + (fib (n-2)));
+```
+
+## Omega Combinator
+- An important degenerate case that will be tested is the omega combinator which applies a single argument to itself
+```
+    w = λx.xx
+```
+- When the 'w' combinator is applied to itself, the result is an infinitely long repeating chain of reductions, a sequence of reductions that has no normal form is said to 'diverge'
+```
+    (λx.xx)(λx.xx) -> (λx.xx)(λx.xx) -> (λx.xx)(λx.xx)
+```
+- This expression will be called the Ω combinator, it is the canonical looping term in the lambda calculus
+- Quite a few of our type systems which are statically typed will reject this term from being well-formed, so it is quite a useful tool for testing
+```
+    Ω = ww = (λx.xx)(λx.xx)
 ```
