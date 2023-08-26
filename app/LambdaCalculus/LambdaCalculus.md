@@ -279,22 +279,29 @@
 ```
     Y(F) = F(Y(F))
 ```
-- Using a bit of lambda calculus, we can wrap the call to Y in a lambda abstraction, though not the full Y Combinator, this equation expresses the recursive behavior of the Y combinator
+- However, this would result in an infinite loop where the function 'Y' immediately calls itself infinitely
+- To prevent this, we could pass the execution of recursion as an argument, creating a higher order function
 ```
     Y(F) = F(λx.(Y(F))(x))
 ```
-- Now, when the function 'Y' is invoked. it calls the function 'F', passes it λx.(Y(F))(x) which is equivalent to the fixed point, this can be represented in JavaScript as
+- Using delayed recursion, the recursive function is now only invoked when the argument 'x' is passed into the newly created lambda abstraction
+- Now, when the function 'Y' is invoked, it calls the function 'F' and passes in λx.(Y(F))(x) which is equivalent to the fixed point, it is just wrapped in an unnamed lambda expression to allow for a more controlled recursion
 ```javascript
     function Y(f) { return F(function (x) { return (Y(F)) (x) ; } ) ; }
 ```
-- Though this function finds the fixed point of a functional, the 'Y' calls itself recursively and hence recursion has not really be eliminated yet, it has just been moved into the function 'Y'
-- Using the U combinator, it is possible to eliminate recursive calls inside the Y combinator, which, with a couple more transformations get us
+- By recursively applying 'Y(F) = F(λx.(Y(F))(x))', the Y combinator searches for a value 'x' such that 'F(x) = x', this is achieved by using self-referencing and recursion
+- It is important to note that the 'Y' calls itself recursively and hence recursion has not really be eliminated yet, it has just been moved into the function 'Y'
+- Using the U combinator (which I will not be going into), it is possible to eliminate recursive calls inside the Y combinator, which, with a couple more transformations get us
 ```
     Y = (λh.λF.F(λ x.((h(h))(F))(x))) (λh.λF.F(λ x.((h(h))(F))(x)))
 ```
 - Note that no reference to Y is made
+- On the next section, we will dive deeper into _how_ the recursive calls work in the Y Combinator itself
 
 ## Applying the Y Combinator
+
+
+
 - The Y Combinator is defined as
 ```
     Y = λR.(λx.(R(xx))λx.(R(xx)))
@@ -363,4 +370,63 @@
 - Quite a few of our type systems which are statically typed will reject this term from being well-formed, so it is quite a useful tool for testing
 ```
     Ω = ww = (λx.xx)(λx.xx)
+```
+
+## Pretty Printing
+- Hackage provides quite a few pretty printer libraries that ease the process of dumping out textual forms for our data types
+- Although there are some differences between the libraries, most of them use the same set of combinators
+- We will use Text.PrettyPrint module from the 'pretty' package on Hackage
+- Most of our pretty printing will be unavoidable boilerplate but will make debugging internal state much easier
+### Combinators
+- <> Concatenation
+- <+> Spaced concatenation
+- char Renders a character as a 'Doc'
+- text Renders a string as a 'Doc'
+- hsep Horizontally concatenates a list of 'Doc'
+- vcat Vertically joins a list of 'Doc' with newlines
+- The core type of the pretty printer is the 'Doc' type which is the abstract type of documents, combinators over this type will manipulate the internal structure of this document which is then reified to a physical string using the 'render' function
+- Since we intent to pretty print across multiple types, we will create a 'Pretty' typeclass
+```haskell
+    module Pretty where
+
+    import Text.PrettyPrint
+
+    class Pretty p where
+        ppr :: Int -> p -> Doc
+
+        pp :: p -> Doc
+        pp = ppr 0
+```
+- First we create two helper functions that collapse our lambda bindings so we can print them out as single lambda expressions
+```haskell
+    viewVars :: Expr -> [Name]
+    viewVars (Lam n a) = n : viewVars a
+    viewVars _ = []
+
+    viewBody :: Expr -> Expr
+    viewBody (Lam _ a) = viewBody a
+    viewBody x = x
+```
+- Then we create a helper function for parenthesizing expression
+```haskell
+    parensIf :: Bool -> Doc -> Doc
+    parensIf True = parens
+    parensIf False = id
+```
+- Finally, we define ppr, the p variable will indicate the depth within the current structure we're printing and allow us to print out differently to disambiguate it from its surroundings if necessary
+```haskell
+    instance Pretty Expr where
+        ppr p e = case e of
+            Lit (LInt a) -> text (show a)
+            Lit (LBool b) -> text (show b)
+            Var x -> text x
+            App a b -> parensIf (p>0) $ (ppr (p+1) a) <+> (ppr p b)
+            Lam x a -> parensIf (p>0) $
+                char '\\;
+                <> hsep (fmap pp (viewVars e))
+                <+> "->"
+                <+> ppr (p+1) (viewBody e)
+    
+    ppexpr :: Expr -> String
+    ppexpr = render . ppr 0
 ```
