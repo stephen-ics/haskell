@@ -57,3 +57,13 @@ For example ⊢ 2 : Nat by the derivation
     ∅ ⊢ P := ⊢ P
 ```
 - This implies that the statement 'P' holds true in the general sense without needing to explicitly empty the context every time
+
+## Type Safety
+- In the context of modeling the semantics of programming languages using this logical notation, we often refer to two fundamenetal categories of rules of the semantics
+    - Statics: Semantic descriptions which are derived from the syntax of a language (type checking, scoping)
+    - Dynamics: Semantics descriptions which describe the value evolution resulting from a program (computations and state changes)
+- Type safety is defined to be the equivalence betweeen the statics and the dynamics of the language
+- This equivalence is modeled by two properties that relate the types and evaluation semantics
+    - Progress: If an expression is well typed then either it is a value, or it can be further evaluated by an available evaluation
+    - Preservation: If an expression 'e' has type 'τ', and is evaluated to e', then e' has type τ
+
