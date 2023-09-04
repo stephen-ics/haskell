@@ -67,3 +67,43 @@ For example ⊢ 2 : Nat by the derivation
     - Progress: If an expression is well typed then either it is a value, or it can be further evaluated by an available evaluation
     - Preservation: If an expression 'e' has type 'τ', and is evaluated to e', then e' has type τ
 
+## Types
+- The word 'type' is quite often overload in the common programming lexicon, - Other languages often refer to runtime tags present in the dynamics of the language as "types"
+- The ambiguity arises because the term 'type' is used both for the static type information determined at compile time and for the runtime type information associated with values or objects, here are some examples
+```
+    # Python
+    >>> type(1)
+    <type 'int'>
+
+    # Javascript
+    > typeof(1)
+    'number'
+
+    # Ruby
+    irb(main):001:0> 1.class
+    => Fixnum
+
+    # Julia
+    julia> typeof(1)
+    Int64
+
+    # Clojure
+    user => (type 1)
+    java.lang.Long
+```
+- Types will be written as τ and can consist of many different constructions to the point where the type language may become as rich as the value level language
+- For now, let's only consider two 'ground types' (Nat and Bool) and an 'arrow type'
+```
+    r ::= Bool
+          Nat
+          r -> r
+```
+- The arrow type will be the type of function expressions, the left argument being the input type and the output type on the right, the arrow type will be right associative
+```
+    τ1 -> τ2 -> τ3 -> τ4 = τ1 -> (τ2 -> (τ3 -> τ4))
+```
+- In all the languages that will be discussed, the types present during compilation are erased
+- Although types are possibly present in the evaluation semantics, the runtime cannot dispatch on types of values at runtime
+- Types by definition only exist at compile-time in the static semantics of a language
+
+
